@@ -1,0 +1,3679 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta property="og:title" content="Mô Hình 3D Nha Khoa Quốc Tế Hà Nội - Lào (Pakse 24-11)">
+    <meta property="og:description" content="Tham quan trực tiếp kiến trúc 3D 2 tầng, 12 khu chức năng và đóng mở 17 cánh cửa tương tác trên PC & Điện thoại.">
+    <title>Mô Hình 3D Phục Dựng Chuẩn 24-11: Nha Khoa Quốc Tế Hà Nội - Lào (Pakse)</title>
+    <script src="libs/three.min.js"></script>
+    <script src="libs/OrbitControls.js"></script>
+    <script src="libs/OBJExporter.js"></script>
+    <script src="libs/GLTFExporter.js"></script>
+    <script src="libs/SimplexNoise.js"></script>
+    <script src="libs/CopyShader.js"></script>
+    <script src="libs/LuminosityHighPassShader.js"></script>
+    <script src="libs/FXAAShader.js"></script>
+    <script src="libs/SSAOShader.js"></script>
+    <script src="libs/EffectComposer.js"></script>
+    <script src="libs/RenderPass.js"></script>
+    <script src="libs/ShaderPass.js"></script>
+    <script src="libs/UnrealBloomPass.js"></script>
+    <script src="libs/SSAOPass.js"></script>
+    <script src="libs/lucide.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { overflow: hidden; background: #0b1120; color: #f1f5f9; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; user-select: none; }
+        #canvas3d { width: 100vw; height: 100vh; display: block; touch-action: none; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.86);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        /* Header */
+        .top-header {
+            position: fixed; top: 14px; left: 14px; right: 14px; z-index: 20;
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
+            pointer-events: none;
+        }
+        .brand-card {
+            pointer-events: auto; border-radius: 16px; padding: 10px 16px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .brand-icon {
+            width: 40px; height: 40px; border-radius: 12px;
+            background: linear-gradient(135deg, #fbbf24, #10b981);
+            display: flex; align-items: center; justify-content: center; color: #020617;
+        }
+        .brand-title { font-size: 14px; font-weight: 700; color: #fef3c7; letter-spacing: 0.3px; }
+        .brand-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        .brand-sub strong { color: #34d399; font-weight: 600; }
+
+        .toolbar {
+            pointer-events: auto; border-radius: 16px; padding: 6px;
+            display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+        }
+        .btn {
+            border: 1px solid transparent; background: transparent; color: #cbd5e1;
+            padding: 8px 12px; border-radius: 11px; font-size: 12px; font-weight: 500;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.18s;
+        }
+        .btn:hover { background: rgba(255, 255, 255, 0.08); color: #ffffff; }
+        .btn.active { background: rgba(16, 185, 129, 0.22); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.4); font-weight: 600; }
+        .btn-amber { color: #fcd34d; border-color: rgba(245, 158, 11, 0.25); }
+        .btn-amber.active { background: #f59e0b; color: #020617; font-weight: 700; }
+        .btn-sky { color: #7dd3fc; border-color: rgba(56, 189, 248, 0.25); }
+        .btn-icon { padding: 8px; }
+
+        /* Left Room Navigator */
+        .nav-sidebar {
+            position: fixed; top: 82px; left: 14px; z-index: 20; width: 224px;
+            max-height: calc(100vh - 160px); overflow-y: auto; border-radius: 16px; padding: 10px;
+        }
+        .nav-sidebar::-webkit-scrollbar { width: 4px; }
+        .nav-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 4px; }
+        .nav-heading { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #94a3b8; padding: 4px 8px; }
+        .nav-section { font-size: 10px; font-weight: 700; padding: 8px 8px 4px; }
+        .sec-f1 { color: #34d399; }
+        .sec-f2 { color: #fbbf24; }
+        .nav-item {
+            width: 100%; text-align: left; border: none; background: transparent; color: #cbd5e1;
+            padding: 6px 8px; border-radius: 8px; font-size: 11.5px; cursor: pointer;
+            display: flex; align-items: center; gap: 7px; transition: all 0.15s;
+        }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.09); color: #fff; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .dot-f1 { background: #34d399; }
+        .dot-f2 { background: #fbbf24; }
+
+        /* Bottom Bar */
+        .bottom-left { position: fixed; bottom: 16px; left: 14px; z-index: 20; }
+        .bottom-right { position: fixed; bottom: 16px; right: 14px; z-index: 20; }
+        .divider { width: 1px; height: 20px; background: rgba(255, 255, 255, 0.15); margin: 0 3px; }
+
+        /* Right Room Modal */
+        .room-modal {
+            position: fixed; top: 82px; right: 14px; z-index: 25; width: 320px; max-width: calc(100vw - 28px);
+            border-radius: 18px; padding: 18px; transform: translateX(360px); transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .room-modal.open { transform: translateX(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+        .modal-num { width: 34px; height: 34px; border-radius: 10px; background: rgba(16,185,129,0.2); color: #34d399; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .modal-title { font-size: 14px; font-weight: 700; color: #fff; }
+        .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 99px; margin-top: 3px; font-weight: 600; }
+        .badge-f1 { background: rgba(16,185,129,0.2); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-f2 { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+        .modal-label { font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 5px; }
+        .modal-box { background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 11px; padding: 10px; font-size: 12px; line-height: 1.5; color: #e2e8f0; margin-bottom: 11px; }
+        .modal-box ul { padding-left: 16px; }
+        .modal-box li { margin-bottom: 3px; }
+        .btn-primary {
+            width: 100%; padding: 9px 14px; border-radius: 11px; border: none; cursor: pointer;
+            background: linear-gradient(90deg, #10b981, #14b8a6); color: #020617; font-weight: 700; font-size: 12px;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 72px; left: 50%; transform: translate(-50%, 14px); opacity: 0; pointer-events: none;
+            z-index: 30; transition: all 0.25s; border-radius: 12px; padding: 8px 16px; font-size: 12px; font-weight: 600; color: #6ee7b7;
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+        .mobile-only { display: none; }
+        @media (max-width: 768px) {
+            .mobile-only { display: inline-flex; }
+            .top-header { top: 8px; left: 8px; right: 8px; gap: 6px; }
+            .brand-card { padding: 6px 10px; border-radius: 12px; width: 100%; }
+            .brand-icon { width: 30px; height: 30px; border-radius: 8px; }
+            .brand-title { font-size: 11.5px; line-height: 1.2; }
+            .brand-sub { display: none; }
+            .toolbar { max-width: calc(100vw - 16px); overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; padding: 4px; border-radius: 12px; }
+            .toolbar::-webkit-scrollbar { display: none; }
+            .btn { padding: 6px 9px; font-size: 11px; white-space: nowrap; flex-shrink: 0; }
+            .nav-sidebar { left: 8px; top: 104px; width: 220px; max-height: calc(100vh - 180px); transform: translateX(-250px); transition: transform 0.24s ease; z-index: 28; }
+            .nav-sidebar.mobile-open { transform: translateX(0); }
+            .bottom-left { bottom: 8px; left: 8px; right: 8px; }
+            .bottom-right { display: none; }
+            .toast { bottom: 64px; font-size: 11px; padding: 6px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas3d"></canvas>
+
+    <!-- Header -->
+    <header class="top-header">
+        <div class="glass-panel brand-card">
+            <div class="brand-icon"><i data-lucide="building-2" style="width:22px;height:22px;"></i></div>
+            <div>
+                <div class="brand-title">NHA KHOA HÀ NỘI - LÀO (PAKSE) — MÔ HÌNH 3D CHI TIẾT 24/11</div>
+                <div class="brand-sub">Phục dựng toàn bộ từ 46 phối cảnh PDF • <strong>Nhấp vào bất kỳ cửa nào để Đóng / Mở</strong></div>
+            </div>
+        </div>
+        <div class="glass-panel toolbar">
+            <button onclick="toggleMobileSidebar()" id="btn-mobile-rooms" class="btn btn-sky mobile-only"><i data-lucide="map" style="width:14px;height:14px;"></i> Phòng</button>
+            <button onclick="setViewMode('both')" id="btn-both" class="btn active"><i data-lucide="layers" style="width:15px;height:15px;"></i> Toàn Nhà (2 Tầng)</button>
+            <button onclick="setViewMode('f1')" id="btn-f1" class="btn"><i data-lucide="store" style="width:15px;height:15px;"></i> Tầng 1</button>
+            <button onclick="setViewMode('f2')" id="btn-f2" class="btn"><i data-lucide="sparkles" style="width:15px;height:15px;"></i> Tầng 2</button>
+            <button onclick="toggleExploded()" id="btn-explode" class="btn btn-amber"><i data-lucide="unfold-vertical" style="width:15px;height:15px;"></i> Tách Sàn (+4.8m)</button>
+            <button onclick="cycleCeilingMode()" id="btn-ceiling" class="btn btn-sky"><i data-lucide="lamp-ceiling" style="width:15px;height:15px;"></i> <span id="txt-ceiling">Trần Tự Động</span></button>
+        </div>
+    </header>
+
+    <!-- Left Room Menu -->
+    <aside class="glass-panel nav-sidebar">
+        <div class="nav-heading">Tham Quan Từng Phòng</div>
+        <div class="nav-section sec-f1">TẦNG 1 (SẢNH &amp; KHÁM)</div>
+        <button onclick="gotoRoom('reception')" class="nav-item"><span class="dot dot-f1"></span> Sảnh Lễ Tân &amp; Chờ</button>
+        <button onclick="gotoRoom('clinic_t1')" class="nav-item"><span class="dot dot-f1"></span> Khám Tổng Quát T1</button>
+        <button onclick="gotoRoom('consult')" class="nav-item"><span class="dot dot-f1"></span> Phòng Tư Vấn Bác Sĩ</button>
+        <button onclick="gotoRoom('meeting')" class="nav-item"><span class="dot dot-f1"></span> Phòng Họp &amp; Giám Đốc</button>
+        <button onclick="gotoRoom('xray')" class="nav-item"><span class="dot dot-f1"></span> Chụp CT Cone Beam</button>
+
+        <div class="nav-section sec-f2">TẦNG 2 (NHA KHOA &amp; SPA)</div>
+        <button onclick="gotoRoom('rhm_t2')" class="nav-item"><span class="dot dot-f2"></span> RHM T2 (Hốc Vòm 24-11)</button>
+        <button onclick="gotoRoom('steril')" class="nav-item"><span class="dot dot-f2"></span> Vô Trùng &amp; Xử Lý</button>
+        <button onclick="gotoRoom('implant')" class="nav-item"><span class="dot dot-f2"></span> Phòng Mổ Implant</button>
+        <button onclick="gotoRoom('aesthetic')" class="nav-item"><span class="dot dot-f2"></span> Phẫu Thuật Thẩm Mỹ</button>
+        <button onclick="gotoRoom('spa')" class="nav-item"><span class="dot dot-f2"></span> Trị Liệu Spa (Hoa Sen)</button>
+        <button onclick="gotoRoom('lounge')" class="nav-item"><span class="dot dot-f2"></span> Studio Lounge &amp; Makeup</button>
+        <button onclick="gotoRoom('recovery')" class="nav-item"><span class="dot dot-f2"></span> Phòng Hậu Phẫu</button>
+    </aside>
+
+    <!-- Bottom Left Action Bar -->
+    <div class="bottom-left">
+        <div class="glass-panel toolbar">
+            <button onclick="toggleAllDoors()" id="btn-doors" class="btn active"><i data-lucide="door-open" style="width:15px;height:15px;"></i> <span id="txt-doors">Mở Tất Cả Cửa</span></button>
+            <button onclick="toggleLightingMode()" id="btn-light" class="btn btn-amber"><i data-lucide="sun" style="width:15px;height:15px;"></i> <span id="txt-light">Ban Ngày</span></button>
+            <button onclick="toggleQuality()" id="btn-quality" class="btn btn-sky active" title="Bật/Tắt Đồ Họa Ultra AAA (SSAO + Bloom + FXAA)"><i data-lucide="sparkles" style="width:15px;height:15px;"></i> <span id="txt-quality">Ultra AAA</span></button>
+            <div class="divider"></div>
+            <button onclick="toggleFan()" id="btn-fan" title="Bật/Tắt Quạt Trần" class="btn btn-icon active"><i data-lucide="fan" style="width:15px;height:15px;"></i></button>
+            <button onclick="togglePins()" id="btn-pins" title="Ẩn/Hiện Ghim Phòng" class="btn btn-icon active"><i data-lucide="map-pin" style="width:15px;height:15px;"></i></button>
+            <button onclick="resetCamera()" title="Góc Nhìn Toàn Cảnh" class="btn btn-icon"><i data-lucide="compass" style="width:15px;height:15px;"></i></button>
+            <button onclick="topDownView()" title="Mặt Bằng Từ Trên Xuống" class="btn btn-icon"><i data-lucide="layout-grid" style="width:15px;height:15px;"></i></button>
+            <button onclick="toggleRotate()" id="btn-rotate" title="Tự Động Xoay 360°" class="btn btn-icon"><i data-lucide="rotate-cw" style="width:15px;height:15px;"></i></button>
+            <button onclick="takeScreenshot()" title="Chụp Ảnh HD" class="btn btn-icon"><i data-lucide="camera" style="width:15px;height:15px;"></i></button>
+        </div>
+    </div>
+
+    <!-- Bottom Right Export Bar -->
+    <div class="bottom-right">
+        <div class="glass-panel toolbar">
+            <button onclick="exportOBJ()" class="btn btn-amber"><i data-lucide="box" style="width:14px;height:14px;"></i> Xuất .OBJ</button>
+            <button onclick="exportGLTF()" class="btn btn-sky"><i data-lucide="download" style="width:14px;height:14px;"></i> Xuất .GLTF</button>
+        </div>
+    </div>
+
+    <!-- Right Room Detail Modal -->
+    <div id="roomModal" class="glass-panel room-modal">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div id="modalIconBox" class="modal-num">1</div>
+                <div>
+                    <div id="modalTitle" class="modal-title">Sảnh Lễ Tân</div>
+                    <span id="modalBadge" class="badge badge-f1">Tầng 1</span>
+                </div>
+            </div>
+            <button onclick="closeModal()" class="btn btn-icon"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+        </div>
+        <div class="modal-label">Không gian &amp; Thiết kế chuẩn 24-11:</div>
+        <div id="modalDesc" class="modal-box"></div>
+        <div class="modal-label">Chi tiết nội thất, trần &amp; thiết bị:</div>
+        <div class="modal-box"><ul id="modalEquipment"></ul></div>
+        <button onclick="focusSelectedRoom()" class="btn-primary"><i data-lucide="focus" style="width:15px;height:15px;"></i> Bay Camera Vào Phòng Này</button>
+    </div>
+
+    <div id="toast" class="glass-panel toast"><span id="toast-msg">OK</span></div>
+
+    <script>
+// ============================================================================
+// MODULE 1: PROCEDURAL STUDIO ENVIRONMENT, TEXTURES & PBR MATERIALS
+// ============================================================================
+
+function createArchitecturalEnv(renderer) {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+
+    const cv = document.createElement('canvas');
+    cv.width = 512; cv.height = 256;
+    const ctx = cv.getContext('2d');
+
+    // Warm sunlit sky + crisp architectural studio horizon + soft bounce floor
+    const grd = ctx.createLinearGradient(0, 0, 0, 256);
+    grd.addColorStop(0.0, '#d8ecff');
+    grd.addColorStop(0.45, '#fff8ef');
+    grd.addColorStop(0.50, '#ffffff');
+    grd.addColorStop(0.55, '#e8dfd5');
+    grd.addColorStop(1.0, '#c2b9af');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 512, 256);
+
+    // Bright studio softboxes for crisp metal & glass speculars
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.fillRect(40, 25, 90, 45);
+    ctx.fillRect(210, 20, 110, 50);
+    ctx.fillRect(380, 30, 80, 40);
+
+    const tex = new THREE.CanvasTexture(cv);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    tex.encoding = THREE.sRGBEncoding;
+    const envRT = pmrem.fromEquirectangular(tex);
+    tex.dispose();
+    pmrem.dispose();
+    return envRT.texture;
+}
+
+function makeCanvasTex(w, h, drawFn, repeatX = 1, repeatY = 1) {
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d');
+    drawFn(ctx, w, h);
+    const tex = new THREE.CanvasTexture(cv);
+    tex.encoding = THREE.sRGBEncoding;
+    tex.anisotropy = 16;
+    if (repeatX !== 1 || repeatY !== 1) {
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(repeatX, repeatY);
+    }
+    return tex;
+}
+
+function initMaterialsAndTextures() {
+    // 1. Floor T1: White marble tiles + subtle veins + burgundy diamond inserts
+    const texFloorT1 = makeCanvasTex(512, 512, (ctx, w, h) => {
+        ctx.fillStyle = '#f5f4f1';
+        ctx.fillRect(0, 0, w, h);
+        // Subtle marble veining
+        ctx.strokeStyle = 'rgba(180, 175, 165, 0.25)';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 8; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * 70, 0);
+            ctx.bezierCurveTo(i * 70 + 40, 180, i * 70 - 30, 340, i * 70 + 25, 512);
+            ctx.stroke();
+        }
+        // 2x2 tile grout lines
+        ctx.strokeStyle = 'rgba(205, 200, 192, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, w, h);
+        ctx.beginPath();
+        ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
+        ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
+        ctx.stroke();
+
+        // Characteristic dark-red diamond dot at center & outer corner intersections
+        function diamond(cx, cy, r) {
+            ctx.fillStyle = '#8b2e2e';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - r);
+            ctx.lineTo(cx + r, cy);
+            ctx.lineTo(cx, cy + r);
+            ctx.lineTo(cx - r, cy);
+            ctx.closePath();
+            ctx.fill();
+        }
+        diamond(0, 0, 22); diamond(w, 0, 22); diamond(w, h, 22); diamond(0, h, 22);
+        diamond(w / 2, h / 2, 22);
+    }, 5, 2.6);
+
+    // 2. Floor T2: Warm creamy off-white porcelain tiles
+    const texFloorT2 = makeCanvasTex(512, 512, (ctx, w, h) => {
+        ctx.fillStyle = '#f2efe9';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(210, 202, 190, 0.65)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i <= 2; i++) {
+            ctx.beginPath(); ctx.moveTo(i * 256, 0); ctx.lineTo(i * 256, h); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, i * 256); ctx.lineTo(w, i * 256); ctx.stroke();
+        }
+    }, 5, 2.6);
+
+    // 3. Terracotta Porch / Balcony Tile
+    const texTerracotta = makeCanvasTex(256, 256, (ctx, w, h) => {
+        ctx.fillStyle = '#c4836e';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#b97762';
+        ctx.fillRect(2, 2, 124, 124);
+        ctx.fillRect(130, 130, 124, 124);
+        ctx.strokeStyle = '#996250';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(0, 0, w, h);
+        ctx.beginPath(); ctx.moveTo(128, 0); ctx.lineTo(128, h); ctx.moveTo(0, 128); ctx.lineTo(w, 128); ctx.stroke();
+    }, 3, 3);
+
+    // 4. Teal Fish-Scale Tile Wall (Under Stairs P16)
+    const texFishScale = makeCanvasTex(512, 512, (ctx, w, h) => {
+        ctx.fillStyle = '#2d6e73';
+        ctx.fillRect(0, 0, w, h);
+        const r = 32;
+        for (let row = 0; row < 20; row++) {
+            for (let col = -1; col < 10; col++) {
+                const cx = col * r * 2 + (row % 2) * r;
+                const cy = row * r * 0.85;
+                ctx.fillStyle = (row + col) % 3 === 0 ? '#3e8e94' : ((row + col) % 2 === 0 ? '#276166' : '#4fa3a8');
+                ctx.beginPath();
+                ctx.arc(cx, cy, r - 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#d4e2e3';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+    }, 1.5, 1.5);
+
+    // 5. Backlit Onyx Reception Logo Wall (P02)
+    const texLogoWall = makeCanvasTex(1024, 512, (ctx, w, h) => {
+        const grd = ctx.createLinearGradient(0, 0, w, h);
+        grd.addColorStop(0, '#f3ede3');
+        grd.addColorStop(0.35, '#fffdf9');
+        grd.addColorStop(0.65, '#f2e0c4');
+        grd.addColorStop(1, '#e7c694');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, w, h);
+
+        // Onyx cloud wash
+        ctx.fillStyle = 'rgba(130, 180, 185, 0.16)';
+        ctx.beginPath(); ctx.ellipse(420, 350, 260, 140, -0.2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(215, 175, 110, 0.22)';
+        ctx.beginPath(); ctx.ellipse(760, 160, 220, 180, 0.3, 0, Math.PI * 2); ctx.fill();
+
+        // Rounded white illuminated sign board in center
+        const bx = 252, by = 135, bw = 520, bh = 185, br = 24;
+        ctx.shadowColor = 'rgba(212, 175, 55, 0.45)';
+        ctx.shadowBlur = 24;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(bx, by, bw, bh, br);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#d6b36a';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Symmetrical Vector Molar Tooth Icon cleanly on left of sign
+        ctx.save();
+        ctx.translate(310, 232);
+        ctx.fillStyle = 'rgba(13, 115, 119, 0.08)';
+        ctx.strokeStyle = '#0d7377';
+        ctx.lineWidth = 5.5;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, -24);
+        ctx.bezierCurveTo(-14, -34, -32, -26, -30, -4);
+        ctx.bezierCurveTo(-29, 14, -22, 34, -14, 34);
+        ctx.bezierCurveTo(-8, 34, -5, 16, 0, 16);
+        ctx.bezierCurveTo(5, 16, 8, 34, 14, 34);
+        ctx.bezierCurveTo(22, 34, 29, 14, 30, -4);
+        ctx.bezierCurveTo(32, -26, 14, -34, 0, -24);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Subtle enamel gloss highlight
+        ctx.strokeStyle = '#d6b36a';
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        ctx.moveTo(-18, -14);
+        ctx.quadraticCurveTo(-20, -2, -16, 10);
+        ctx.stroke();
+        ctx.restore();
+
+        // Lao & Vietnamese Titles cleanly spaced to right of icon
+        ctx.fillStyle = '#0d7377';
+        ctx.font = 'bold 31px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ຄລີນິກປົວແຂ້ວ ຮ່າໂນ້ຍ-ລາວ', 562, 208);
+        ctx.fillStyle = '#1e3a3a';
+        ctx.font = 'bold 23px Segoe UI, sans-serif';
+        ctx.fillText('NHA KHOA HÀ NỘI - LÀO', 562, 248);
+
+        // Flags
+        ctx.fillStyle = '#da251d'; ctx.fillRect(518, 270, 34, 22);
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath(); ctx.arc(535, 281, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ce1126'; ctx.fillRect(562, 270, 34, 22);
+        ctx.fillStyle = '#002868'; ctx.fillRect(562, 276, 34, 10);
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(579, 281, 4, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // 6. Sky Backlit Ceiling Panel (P02)
+    const texSky = makeCanvasTex(512, 512, (ctx, w, h) => {
+        const grd = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, 320);
+        grd.addColorStop(0, '#ffffff');
+        grd.addColorStop(0.55, '#dbeafe');
+        grd.addColorStop(1, '#bfdbfe');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = 'rgba(255,255,255,0.65)';
+        for (let i = 0; i < 12; i++) {
+            ctx.beginPath();
+            ctx.arc(80 + (i * 47) % 360, 100 + (i * 73) % 300, 45 + (i % 3) * 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+
+    // 7. Dotted Glowing World Map Wall (P20 - CT Room, rich contrast warm bronze + crisp glowing continents)
+    const texWorldMap = makeCanvasTex(1024, 512, (ctx, w, h) => {
+        const grd = ctx.createLinearGradient(0, 0, w, h);
+        grd.addColorStop(0, '#9c6e49');
+        grd.addColorStop(0.5, '#b6855c');
+        grd.addColorStop(1, '#926541');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, w, h);
+        const continents = [
+            { x: 240, y: 170, rx: 95, ry: 55 },  // N America
+            { x: 315, y: 310, rx: 55, ry: 75 },  // S America
+            { x: 520, y: 155, rx: 65, ry: 40 },  // Europe
+            { x: 525, y: 270, rx: 70, ry: 80 },  // Africa
+            { x: 700, y: 185, rx: 140, ry: 75 }, // Asia
+            { x: 790, y: 345, rx: 55, ry: 38 }   // Australia
+        ];
+        for (let gx = 100; gx < 920; gx += 12) {
+            for (let gy = 80; gy < 430; gy += 12) {
+                const inside = continents.some(c => Math.pow((gx - c.x) / c.rx, 2) + Math.pow((gy - c.y) / c.ry, 2) < 1.0);
+                if (inside) {
+                    ctx.fillStyle = 'rgba(255, 250, 230, 0.98)';
+                    ctx.beginPath(); ctx.arc(gx, gy, 3.6, 0, Math.PI * 2); ctx.fill();
+                } else {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.09)';
+                    ctx.beginPath(); ctx.arc(gx, gy, 1.5, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+        }
+    });
+
+    // 8. Rich Layered Blooming Pastel Lotus Mural (P39, P40 - Spa Room)
+    const texLotusMural = makeCanvasTex(1024, 512, (ctx, w, h) => {
+        const grd = ctx.createLinearGradient(0, 0, w, h);
+        grd.addColorStop(0, '#f5ede4');
+        grd.addColorStop(0.5, '#f9f4ef');
+        grd.addColorStop(1, '#ede3d7');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, w, h);
+
+        function drawPad(cx, cy, rx, ry, rot, col) {
+            ctx.save();
+            ctx.translate(cx, cy); ctx.rotate(rot);
+            ctx.fillStyle = col;
+            ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.lineWidth = 2;
+            for (let a = 0; a < Math.PI * 2; a += 0.65) {
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * rx * 0.85, Math.sin(a) * ry * 0.85); ctx.stroke();
+            }
+            ctx.restore();
+        }
+        function drawRichLotus(cx, cy, sc) {
+            // Stems
+            ctx.strokeStyle = '#607d73'; ctx.lineWidth = 5 * sc;
+            ctx.beginPath(); ctx.moveTo(cx, cy + 160 * sc); ctx.quadraticCurveTo(cx - 12 * sc, cy + 80 * sc, cx, cy); ctx.stroke();
+            // Layered outer -> inner petals
+            const rings = [
+                { count: 9, spread: 1.9, len: 120, wid: 34, c0: '#b86852', c1: '#ecc0aa' },
+                { count: 7, spread: 1.45, len: 100, wid: 30, c0: '#cf7d65', c1: '#f9ded0' },
+                { count: 5, spread: 0.95, len: 82, wid: 24, c0: '#e29882', c1: '#fff9f5' }
+            ];
+            rings.forEach(ring => {
+                for (let i = 0; i < ring.count; i++) {
+                    const a = -ring.spread / 2 + (i / (ring.count - 1)) * ring.spread;
+                    ctx.save(); ctx.translate(cx, cy); ctx.rotate(a);
+                    const pGrd = ctx.createLinearGradient(0, 0, 0, -ring.len * sc);
+                    pGrd.addColorStop(0, ring.c0);
+                    pGrd.addColorStop(0.55, ring.c1);
+                    pGrd.addColorStop(1, '#ffffff');
+                    ctx.fillStyle = pGrd;
+                    ctx.strokeStyle = 'rgba(170, 95, 78, 0.32)'; ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.bezierCurveTo(-ring.wid * sc, -ring.len * 0.4 * sc, -ring.wid * 0.65 * sc, -ring.len * 0.85 * sc, 0, -ring.len * sc);
+                    ctx.bezierCurveTo(ring.wid * 0.65 * sc, -ring.len * 0.85 * sc, ring.wid * sc, -ring.len * 0.4 * sc, 0, 0);
+                    ctx.fill(); ctx.stroke();
+                    ctx.restore();
+                }
+            });
+            // Golden center pod
+            ctx.fillStyle = '#e6b85c';
+            ctx.beginPath(); ctx.ellipse(cx, cy - 12 * sc, 18 * sc, 10 * sc, 0, 0, Math.PI * 2); ctx.fill();
+        }
+        drawPad(180, 420, 125, 75, -0.2, '#4a6b65');
+        drawPad(490, 435, 165, 95, 0.12, '#3d5c56');
+        drawPad(810, 415, 130, 80, 0.25, '#587b74');
+        drawRichLotus(210, 320, 1.0);
+        drawRichLotus(510, 260, 1.38);
+        drawRichLotus(805, 305, 1.08);
+    });
+
+    // 9. Zebra Window Blinds (P03, P04, P09, P15)
+    const texZebra = makeCanvasTex(256, 256, (ctx, w, h) => {
+        ctx.clearRect(0, 0, w, h);
+        for (let y = 0; y < h; y += 24) {
+            ctx.fillStyle = 'rgba(182, 165, 148, 0.88)';
+            ctx.fillRect(0, y, w, 13);
+            ctx.fillStyle = 'rgba(255, 252, 248, 0.25)';
+            ctx.fillRect(0, y + 13, w, 11);
+        }
+    }, 1, 2);
+
+    // 10. Fluted Vertical Panel Bump/Pattern
+    const texFluted = makeCanvasTex(256, 256, (ctx, w, h) => {
+        for (let x = 0; x < w; x += 16) {
+            const g = ctx.createLinearGradient(x, 0, x + 16, 0);
+            g.addColorStop(0, '#cfc2b2');
+            g.addColorStop(0.5, '#f2ebe3');
+            g.addColorStop(1, '#bfb09e');
+            ctx.fillStyle = g;
+            ctx.fillRect(x, 0, 16, h);
+        }
+    }, 4, 1);
+
+    const texFlutedWalnut = makeCanvasTex(256, 256, (ctx, w, h) => {
+        for (let x = 0; x < w; x += 16) {
+            const g = ctx.createLinearGradient(x, 0, x + 16, 0);
+            g.addColorStop(0, '#4a3220');
+            g.addColorStop(0.5, '#7a563b');
+            g.addColorStop(1, '#3c2718');
+            ctx.fillStyle = g;
+            ctx.fillRect(x, 0, 16, h);
+        }
+    }, 4, 1);
+
+    // 11A. Glossy Dark OLED Wall TV Display (Sleek architectural off/standby reflection matching 24-11 renders)
+    const texTVGlossBlack = makeCanvasTex(512, 256, (ctx, w, h) => {
+        const g = ctx.createLinearGradient(0, 0, w, h);
+        g.addColorStop(0, '#090d14');
+        g.addColorStop(0.38, '#131b29');
+        g.addColorStop(0.55, '#0b111c');
+        g.addColorStop(1, '#05070c');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        // Subtle studio diagonal ambient sheen
+        const sheen = ctx.createLinearGradient(0, 0, w * 0.7, h * 0.7);
+        sheen.addColorStop(0, 'rgba(255,255,255,0.08)');
+        sheen.addColorStop(0.45, 'rgba(255,255,255,0.02)');
+        sheen.addColorStop(1, 'rgba(255,255,255,0.0)');
+        ctx.fillStyle = sheen;
+        ctx.beginPath();
+        ctx.moveTo(0, 0); ctx.lineTo(w * 0.62, 0); ctx.lineTo(w * 0.25, h); ctx.lineTo(0, h);
+        ctx.closePath();
+        ctx.fill();
+        // Faint standby dot at bottom right bezel
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath(); ctx.arc(w - 18, h - 14, 2.5, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // 11B. Modern Clinic macOS / Reception Desktop UI (For iMacs & Laptops)
+    const texScreenMacOS = makeCanvasTex(1024, 512, (ctx, w, h) => {
+        const bg = ctx.createLinearGradient(0, 0, w, h);
+        bg.addColorStop(0, '#0f293a');
+        bg.addColorStop(0.5, '#134e4a');
+        bg.addColorStop(1, '#1e293b');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+        // Soft aura bokeh circles
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+        ctx.beginPath(); ctx.arc(280, 180, 170, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(212, 163, 115, 0.12)';
+        ctx.beginPath(); ctx.arc(760, 310, 200, 0, Math.PI * 2); ctx.fill();
+        // Top macOS menu bar
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
+        ctx.fillRect(0, 0, w, 28);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 14px Segoe UI, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('HANOI - LAO DENTAL HIS', 20, 19);
+        ctx.textAlign = 'right';
+        ctx.fillText('PAKSE CLINIC 24/11', w - 20, 19);
+        // Glassmorphic schedule & 3D preview window cards
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.beginPath(); ctx.roundRect(72, 64, 540, 356, 16); ctx.fill();
+        ctx.fillStyle = 'rgba(241, 245, 249, 0.94)';
+        ctx.beginPath(); ctx.roundRect(638, 64, 314, 356, 16); ctx.fill();
+        // Header strip inside main card
+        ctx.fillStyle = '#0d7377';
+        ctx.beginPath(); ctx.roundRect(96, 88, 220, 34, 8); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Segoe UI, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('LICH KHAM BENH NHAN', 112, 110);
+        for (let r = 0; r < 5; r++) {
+            const ry = 144 + r * 50;
+            ctx.fillStyle = r % 2 === 0 ? '#f1f5f9' : '#e2e8f0';
+            ctx.beginPath(); ctx.roundRect(96, ry, 492, 38, 8); ctx.fill();
+            ctx.fillStyle = r === 1 ? '#10b981' : '#38bdf8';
+            ctx.beginPath(); ctx.arc(118, ry + 19, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(140, ry + 13, 190, 11);
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(360, ry + 13, 120, 11);
+        }
+        // Right card: analytics donuts & mini bars
+        ctx.strokeStyle = '#0d7377'; ctx.lineWidth = 18;
+        ctx.beginPath(); ctx.arc(795, 195, 62, -Math.PI / 2, Math.PI * 1.15); ctx.stroke();
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 18;
+        ctx.beginPath(); ctx.arc(795, 195, 62, Math.PI * 1.15, Math.PI * 1.5); ctx.stroke();
+        for (let b = 0; b < 4; b++) {
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(670, 295 + b * 26, 250, 14);
+            ctx.fillStyle = '#0ea5e9';
+            ctx.fillRect(670, 295 + b * 26, 130 + ((b * 37) % 100), 14);
+        }
+        // Bottom Dock
+        ctx.fillStyle = 'rgba(255,255,255,0.22)';
+        ctx.beginPath(); ctx.roundRect(312, 446, 400, 50, 16); ctx.fill();
+        ['#38bdf8', '#10b981', '#f59e0b', '#ec4899', '#6366f1', '#14b8a6'].forEach((c, idx) => {
+            ctx.fillStyle = c;
+            ctx.beginPath(); ctx.roundRect(344 + idx * 58, 455, 34, 34, 8); ctx.fill();
+        });
+    });
+
+    // 11C. Anatomically Accurate 3D Dental Arch & CBCT Monitor UI (Strictly for Dental Unit Chairside Monitors)
+    const texScreenDentalArch = makeCanvasTex(1024, 512, (ctx, w, h) => {
+        const bg = ctx.createRadialGradient(w * 0.36, h * 0.52, 40, w * 0.36, h * 0.52, 420);
+        bg.addColorStop(0, '#0f2537');
+        bg.addColorStop(1, '#060c14');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle medical grid lines
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+        ctx.lineWidth = 1;
+        for (let gx = 40; gx < 660; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 48); ctx.lineTo(gx, h - 32); ctx.stroke(); }
+        for (let gy = 48; gy < h - 32; gy += 40) { ctx.beginPath(); ctx.moveTo(40, gy); ctx.lineTo(660, gy); ctx.stroke(); }
+
+        // Helper to draw an anatomically shaped curved jaw arch (Maxillary Upper & Mandibular Lower)
+        function drawDentalArch(cx, cy, rx, ry, isUpper) {
+            // Soft pink translucent gingiva (gum ridge arc)
+            ctx.save();
+            ctx.strokeStyle = 'rgba(219, 112, 132, 0.36)';
+            ctx.lineWidth = 42;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            if (isUpper) ctx.ellipse(cx, cy, rx, ry, 0, Math.PI * 1.08, Math.PI * 1.92);
+            else ctx.ellipse(cx, cy, rx * 0.94, ry * 0.94, 0, Math.PI * 0.08, Math.PI * 0.92);
+            ctx.stroke();
+
+            // 14 anatomically differentiated teeth along horseshoe arch
+            const count = 14;
+            for (let i = 0; i < count; i++) {
+                const u = i / (count - 1); // 0..1 from right molar to left molar
+                const ang = isUpper
+                    ? (Math.PI * 1.07 + u * Math.PI * 0.86)
+                    : (Math.PI * 0.93 - u * Math.PI * 0.86);
+                const radX = isUpper ? rx : rx * 0.94;
+                const radY = isUpper ? ry : ry * 0.94;
+                const tx = cx + Math.cos(ang) * radX;
+                const ty = cy + Math.sin(ang) * radY;
+                const distFromMid = Math.abs(u - 0.5) * 2; // 0 = central incisor, 1 = 2nd molar
+
+                // Tooth size morphs smoothly from central incisors -> cuspids -> premolars -> wide molars
+                const tw = 16 + distFromMid * 15;
+                const th = isUpper ? (25 + (1 - distFromMid) * 6) : (23 + (1 - distFromMid) * 5);
+
+                ctx.save();
+                ctx.translate(tx, ty);
+                ctx.rotate(ang + Math.PI / 2);
+
+                // Root shading into gum
+                ctx.fillStyle = 'rgba(226, 208, 178, 0.45)';
+                ctx.beginPath();
+                ctx.moveTo(-tw * 0.34, 0);
+                ctx.lineTo(0, isUpper ? -th * 0.72 : -th * 0.65);
+                ctx.lineTo(tw * 0.34, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                // Sculpted enamel crown gradient (warm pearly ivory -> translucent incisal edge)
+                const enamel = ctx.createLinearGradient(0, -th * 0.4, 0, th * 0.5);
+                enamel.addColorStop(0, '#fdfbf7');
+                enamel.addColorStop(0.75, '#f1eadc');
+                enamel.addColorStop(1, '#dbe6f2');
+                ctx.fillStyle = enamel;
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.65)';
+                ctx.lineWidth = 1.4;
+                ctx.beginPath();
+                ctx.roundRect(-tw * 0.46, -th * 0.32, tw * 0.92, th * 0.82, [tw * 0.38, tw * 0.38, tw * 0.28, tw * 0.28]);
+                ctx.fill();
+                ctx.stroke();
+
+                // Highlight titanium implant screw indicator on lower right first molar (#46)
+                if (!isUpper && i === 2) {
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 2.4;
+                    ctx.strokeRect(-tw * 0.46, -th * 0.32, tw * 0.92, th * 0.82);
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.fillRect(-3.5, -th * 0.55, 7, 14);
+                }
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        // Upper & Lower Anatomical Arches arranged cleanly as a 3D panoramic occlusion view
+        drawDentalArch(340, 238, 198, 108, true);
+        drawDentalArch(340, 294, 190, 102, false);
+
+        // Clean Cyan CAD Overlay & Header
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 20px Segoe UI, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('3D INTRAORAL SCAN • IMPLANT PLAN', 42, 42);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(24, 18, w - 48, h - 36);
+
+        // Right Diagnostics Side Panel
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.beginPath(); ctx.roundRect(685, 58, 292, 405, 14); ctx.fill();
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+        ctx.stroke();
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 16px Segoe UI, sans-serif';
+        ctx.fillText('CBCT DENSITY & FIT', 710, 96);
+        ['ARCH FIT: 99.2%', 'BONE DENSITY: D2', 'IMPLANT: #46 Ø4.1', 'OCCLUSION: BALANCED'].forEach((label, idx) => {
+            const y = 135 + idx * 72;
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+            ctx.beginPath(); ctx.roundRect(710, y, 242, 52, 8); ctx.fill();
+            ctx.fillStyle = '#7dd3fc';
+            ctx.font = 'bold 15px Segoe UI, sans-serif';
+            ctx.fillText(label, 726, y + 31);
+        });
+    });
+
+    // 11D. Subtle Radial Ceiling Light Glow Halo (Reinforces multi-fixture architectural lighting)
+    const texLightHalo = makeCanvasTex(128, 128, (ctx, w, h) => {
+        const g = ctx.createRadialGradient(w / 2, h / 2, 6, w / 2, h / 2, w / 2);
+        g.addColorStop(0, 'rgba(255, 248, 225, 0.88)');
+        g.addColorStop(0.35, 'rgba(255, 242, 200, 0.35)');
+        g.addColorStop(1, 'rgba(255, 242, 200, 0.0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // 12. Frosted Safety Privacy Strip on Glass Partitions
+    const texGlassFrostBand = makeCanvasTex(512, 512, (ctx, w, h) => {
+        ctx.clearRect(0, 0, w, h);
+        // Subtle translucent horizontal privacy stripe band in middle
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.fillRect(0, 175, w, 145);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.fillRect(0, 155, w, 10);
+        ctx.fillRect(0, 330, w, 10);
+    });
+
+    // 13. Signage plaque generator (High-DPI 1024x160 + Auto-fit padding so NO text ever clips!)
+    function makeSignMat(text, bg = '#c89b72', fg = '#ffffff') {
+        const isTransparent = (bg === 'rgba(0,0,0,0)' || bg === 'transparent');
+        const tex = makeCanvasTex(1024, 160, (ctx, w, h) => {
+            ctx.clearRect(0, 0, w, h);
+            if (!isTransparent) {
+                ctx.fillStyle = bg;
+                ctx.beginPath();
+                ctx.moveTo(64, 18); ctx.lineTo(w - 22, 18); ctx.lineTo(w - 64, h - 18); ctx.lineTo(22, h - 18);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 240, 210, 0.65)';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+            ctx.fillStyle = fg;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            let fontSize = isTransparent ? 62 : 56;
+            const maxW = isTransparent ? w - 80 : w - 170;
+            do {
+                ctx.font = `bold ${fontSize}px Segoe UI, sans-serif`;
+                fontSize -= 2;
+            } while (ctx.measureText(text).width > maxW && fontSize > 22);
+            ctx.fillText(text, w / 2, h / 2 + 2);
+        });
+        return new THREE.MeshStandardMaterial({
+            map: tex,
+            transparent: true,
+            alphaTest: 0.08,
+            roughness: 0.35,
+            metalness: isTransparent ? 0.35 : 0.12,
+            side: THREE.FrontSide
+        });
+    }
+
+    // 14. Framed Beauty Portrait Generator
+    function makePortraitMat(bgHex, accentHex) {
+        const tex = makeCanvasTex(256, 360, (ctx, w, h) => {
+            ctx.fillStyle = bgHex;
+            ctx.fillRect(0, 0, w, h);
+            // Soft portrait silhouette
+            ctx.fillStyle = '#ead2c3';
+            ctx.beginPath(); ctx.ellipse(128, 130, 52, 65, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(128, 300, 95, 90, 0, Math.PI, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = accentHex; // Hair / framing
+            ctx.beginPath(); ctx.arc(128, 118, 56, Math.PI, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; // Bright smile
+            ctx.beginPath(); ctx.ellipse(128, 158, 18, 7, 0, 0, Math.PI); ctx.fill();
+        });
+        return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.35 });
+    }
+
+    // 15. Blue Medical Chart Poster
+    const texBlueChart = makeCanvasTex(256, 320, (ctx, w, h) => {
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(14, 14, w - 28, 34);
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 2; c++) {
+                ctx.fillRect(18 + c * 115, 64 + r * 80, 102, 64);
+            }
+        }
+    });
+
+    // Soft Radial Contact Shadow Decal Texture (Grounds every chair/desk/sofa on floor!)
+    const texContactShadow = makeCanvasTex(128, 128, (ctx, w, h) => {
+        const grd = ctx.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, w / 2);
+        grd.addColorStop(0, 'rgba(15, 23, 42, 0.32)');
+        grd.addColorStop(0.55, 'rgba(15, 23, 42, 0.14)');
+        grd.addColorStop(1, 'rgba(15, 23, 42, 0.0)');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, w, h);
+    });
+
+    // Subtle Surface Grain Bump Texture for Leather & Plaster
+    const texGrainBump = makeCanvasTex(128, 128, (ctx, w, h) => {
+        ctx.fillStyle = '#808080';
+        ctx.fillRect(0, 0, w, h);
+        for (let i = 0; i < 1200; i++) {
+            const v = 115 + ((i * 73) % 30);
+            ctx.fillStyle = `rgb(${v},${v},${v})`;
+            ctx.fillRect((i * 37) % w, (i * 53) % h, 2, 2);
+        }
+    }, 6, 6);
+
+    // Panoramic Sunlit Sky & City Skyline Backdrop outside Windows
+    const texPanoramaCity = makeCanvasTex(1024, 256, (ctx, w, h) => {
+        const grd = ctx.createLinearGradient(0, 0, 0, h);
+        grd.addColorStop(0, '#6aa6d8');
+        grd.addColorStop(0.55, '#cfe7fa');
+        grd.addColorStop(0.76, '#eef6fc');
+        grd.addColorStop(1, '#a9b5a6');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, w, h);
+        // Distant misty city silhouette buildings & trees
+        for (let bx = 0; bx < w; bx += 28) {
+            const bh = 24 + ((bx * 17) % 52);
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
+            ctx.fillRect(bx, h * 0.78 - bh, 22, bh);
+        }
+        ctx.fillStyle = '#6f8f6b';
+        ctx.fillRect(0, h * 0.78, w, h * 0.22);
+    });
+
+    // Material Library (Calibrated contrast + bump maps + contact shadow decals)
+    const MAT = {
+        wallWhite: new THREE.MeshStandardMaterial({ color: 0xebe9e3, roughness: 0.88, metalness: 0.02, envMapIntensity: 0.35 }),
+        wallCream: new THREE.MeshStandardMaterial({ color: 0xe4d7c3, roughness: 0.85, metalness: 0.02, envMapIntensity: 0.35 }),
+        wallPeach: new THREE.MeshStandardMaterial({ color: 0xdca87c, roughness: 0.68, metalness: 0.05, envMapIntensity: 0.4 }),
+        wallArchTan: new THREE.MeshStandardMaterial({ color: 0xb98962, roughness: 0.72, metalness: 0.05, envMapIntensity: 0.4 }),
+        skirtingTrim: new THREE.MeshStandardMaterial({ color: 0xd6c7b4, roughness: 0.65, metalness: 0.05, envMapIntensity: 0.35 }),
+        ceilingDown: new THREE.MeshStandardMaterial({ color: 0xf4f2ed, roughness: 0.90, side: THREE.DoubleSide, envMapIntensity: 0.3 }),
+        floorT1: new THREE.MeshStandardMaterial({ map: texFloorT1, bumpMap: texFloorT1, bumpScale: 0.008, roughness: 0.22, metalness: 0.12, envMapIntensity: 0.58 }),
+        floorT2: new THREE.MeshStandardMaterial({ map: texFloorT2, bumpMap: texFloorT2, bumpScale: 0.006, roughness: 0.30, metalness: 0.08, envMapIntensity: 0.48 }),
+        terracotta: new THREE.MeshStandardMaterial({ map: texTerracotta, bumpMap: texTerracotta, bumpScale: 0.015, roughness: 0.78, envMapIntensity: 0.3 }),
+        fishScale: new THREE.MeshStandardMaterial({ map: texFishScale, bumpMap: texFishScale, bumpScale: 0.02, roughness: 0.25, metalness: 0.15, envMapIntensity: 0.6 }),
+        gold: new THREE.MeshStandardMaterial({ color: 0xd1a858, roughness: 0.24, metalness: 0.88, envMapIntensity: 1.15 }),
+        chrome: new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.15, metalness: 0.92, envMapIntensity: 1.25 }),
+        darkWalnut: new THREE.MeshStandardMaterial({ color: 0x3b271a, roughness: 0.62, metalness: 0.06, envMapIntensity: 0.4 }),
+        warmWood: new THREE.MeshStandardMaterial({ color: 0x855834, roughness: 0.65, metalness: 0.05, envMapIntensity: 0.4 }),
+        whiteWood: new THREE.MeshStandardMaterial({ color: 0xe8e5df, roughness: 0.65, metalness: 0.04, envMapIntensity: 0.35 }),
+        flutedCream: new THREE.MeshStandardMaterial({ map: texFluted, bumpMap: texFluted, bumpScale: 0.03, roughness: 0.72, envMapIntensity: 0.35 }),
+        flutedWalnut: new THREE.MeshStandardMaterial({ map: texFlutedWalnut, bumpMap: texFlutedWalnut, bumpScale: 0.03, roughness: 0.65, envMapIntensity: 0.4 }),
+        glassClear: new THREE.MeshStandardMaterial({ color: 0xdceeff, transparent: true, opacity: 0.24, roughness: 0.08, metalness: 0.18, envMapIntensity: 1.4, depthWrite: false }),
+        glassFrostBand: new THREE.MeshStandardMaterial({ map: texGlassFrostBand, transparent: true, opacity: 0.82, roughness: 0.35, metalness: 0.08, side: THREE.DoubleSide, depthWrite: false, envMapIntensity: 0.5 }),
+        glassFrosted: new THREE.MeshStandardMaterial({ color: 0xdce6f0, transparent: true, opacity: 0.68, roughness: 0.48, metalness: 0.06, envMapIntensity: 0.4 }),
+        leatherTan: new THREE.MeshStandardMaterial({ color: 0x9b7250, bumpMap: texGrainBump, bumpScale: 0.008, roughness: 0.40, metalness: 0.06, envMapIntensity: 0.48 }),
+        leatherDark: new THREE.MeshStandardMaterial({ color: 0x5c402c, bumpMap: texGrainBump, bumpScale: 0.008, roughness: 0.45, metalness: 0.05, envMapIntensity: 0.42 }),
+        fabricCream: new THREE.MeshStandardMaterial({ color: 0xe0d6c8, bumpMap: texGrainBump, bumpScale: 0.012, roughness: 0.86, metalness: 0.02, envMapIntensity: 0.3 }),
+        fabricTaupe: new THREE.MeshStandardMaterial({ color: 0xb09e89, bumpMap: texGrainBump, bumpScale: 0.012, roughness: 0.78, envMapIntensity: 0.3 }),
+        fabricPastelMint: new THREE.MeshStandardMaterial({ color: 0x8bc7c0, roughness: 0.80, envMapIntensity: 0.3 }),
+        fabricNavy: new THREE.MeshStandardMaterial({ color: 0x1b3454, roughness: 0.80, envMapIntensity: 0.3 }),
+        dentalWhite: new THREE.MeshStandardMaterial({ color: 0xf4f4f2, roughness: 0.25, metalness: 0.12, envMapIntensity: 0.55 }),
+        marbleWhite: new THREE.MeshStandardMaterial({ color: 0xede8df, roughness: 0.24, metalness: 0.08, envMapIntensity: 0.52 }),
+        marbleBlack: new THREE.MeshStandardMaterial({ color: 0x22262b, roughness: 0.28, metalness: 0.18, envMapIntensity: 0.6 }),
+        marbleBrown: new THREE.MeshStandardMaterial({ color: 0x9e8570, roughness: 0.32, metalness: 0.08, envMapIntensity: 0.4 }),
+        spaLinen: new THREE.MeshStandardMaterial({ color: 0xcbc5bc, bumpMap: texGrainBump, bumpScale: 0.01, roughness: 0.86, envMapIntensity: 0.3 }),
+        stainlessLead: new THREE.MeshStandardMaterial({ color: 0x8c97a4, roughness: 0.32, metalness: 0.75, envMapIntensity: 0.9 }),
+        logoWall: new THREE.MeshStandardMaterial({ map: texLogoWall, emissive: 0xfff5e0, emissiveMap: texLogoWall, emissiveIntensity: 0.25, roughness: 0.35, envMapIntensity: 0.4 }),
+        skyPanel: new THREE.MeshStandardMaterial({ map: texSky, emissive: 0xdbeafe, emissiveMap: texSky, emissiveIntensity: 0.45, roughness: 0.25, envMapIntensity: 0.3 }),
+        worldMapWall: new THREE.MeshStandardMaterial({ map: texWorldMap, emissive: 0xffe4c4, emissiveMap: texWorldMap, emissiveIntensity: 0.14, roughness: 0.45, envMapIntensity: 0.3 }),
+        lotusMural: new THREE.MeshStandardMaterial({ map: texLotusMural, roughness: 0.75, envMapIntensity: 0.3 }),
+        zebraBlind: new THREE.MeshStandardMaterial({ map: texZebra, transparent: true, opacity: 0.92, side: THREE.DoubleSide, envMapIntensity: 0.2 }),
+        tvGlossBlack: new THREE.MeshStandardMaterial({ map: texTVGlossBlack, roughness: 0.08, metalness: 0.45, envMapIntensity: 1.15 }),
+        screenMacOS: new THREE.MeshStandardMaterial({ map: texScreenMacOS, emissive: 0x0f172a, emissiveMap: texScreenMacOS, emissiveIntensity: 0.55, roughness: 0.16, envMapIntensity: 0.7 }),
+        screenDentalArch: new THREE.MeshStandardMaterial({ map: texScreenDentalArch, emissive: 0x0b2538, emissiveMap: texScreenDentalArch, emissiveIntensity: 0.55, roughness: 0.16, envMapIntensity: 0.7 }),
+        screen: new THREE.MeshStandardMaterial({ map: texScreenDentalArch, emissive: 0x0b2538, emissiveMap: texScreenDentalArch, emissiveIntensity: 0.5, roughness: 0.18, envMapIntensity: 0.7 }),
+        lightHalo: new THREE.MeshBasicMaterial({ map: texLightHalo, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide }),
+        blueChart: new THREE.MeshStandardMaterial({ map: texBlueChart, roughness: 0.4, envMapIntensity: 0.3 }),
+        contactShadow: new THREE.MeshBasicMaterial({ map: texContactShadow, transparent: true, depthWrite: false }),
+        panoramaCity: new THREE.MeshBasicMaterial({ map: texPanoramaCity, side: THREE.BackSide }),
+        coveWarm: new THREE.MeshBasicMaterial({ color: 0xfde08d }),
+        coveCool: new THREE.MeshBasicMaterial({ color: 0xf1f5f9 }),
+        downlightLED: new THREE.MeshBasicMaterial({ color: 0xffffff }),
+        uvBlue: new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
+        uvPurple: new THREE.MeshBasicMaterial({ color: 0xc084fc }),
+        redBeacon: new THREE.MeshBasicMaterial({ color: 0xef4444 }),
+        plantGreen: new THREE.MeshStandardMaterial({ color: 0x36623a, roughness: 0.75, envMapIntensity: 0.3 }),
+        rugGrey: new THREE.MeshStandardMaterial({ color: 0x9aa0a9, roughness: 0.95, envMapIntensity: 0.2 }),
+        makeSignMat,
+        makePortraitMat
+    };
+
+    return MAT;
+}
+
+
+// ============================================================================
+// MODULE 2: SCULPTED ARCHITECTURAL BUILDERS (WALLS, ARCHES, GLASS, DOORS, CEILINGS)
+// ============================================================================
+
+function roundedRectShape(w, h, r) {
+    const s = new THREE.Shape();
+    const x = -w / 2, y = -h / 2;
+    r = Math.min(r, w / 2 - 0.001, h / 2 - 0.001);
+    s.moveTo(x + r, y);
+    s.lineTo(x + w - r, y);
+    s.quadraticCurveTo(x + w, y, x + w, y + r);
+    s.lineTo(x + w, y + h - r);
+    s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    s.lineTo(x + r, y + h);
+    s.quadraticCurveTo(x, y + h, x, y + h - r);
+    s.lineTo(x, y + r);
+    s.quadraticCurveTo(x, y, x + r, y);
+    return s;
+}
+
+function addBox(parent, x1, y1, z1, x2, y2, z2, mat, castShadow = true) {
+    const w = Math.abs(x2 - x1), h = Math.abs(y2 - y1), d = Math.abs(z2 - z1);
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    mesh.position.set((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2);
+    mesh.castShadow = castShadow;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+}
+
+function addBeveledBox(parent, cx, cy, cz, w, h, d, r, mat, bevel = 0.015) {
+    const shape = roundedRectShape(w, d, r);
+    const geom = new THREE.ExtrudeGeometry(shape, {
+        depth: Math.max(0.01, h - bevel * 2),
+        bevelEnabled: bevel > 0,
+        bevelThickness: bevel,
+        bevelSize: bevel,
+        bevelSegments: 2,
+        curveSegments: 10
+    });
+    geom.rotateX(-Math.PI / 2);
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.position.set(cx, cy + bevel, cz);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+}
+
+function addCyl(parent, cx, cy, cz, rTop, rBot, h, mat, seg = 20, castShadow = true) {
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, h, seg), mat);
+    mesh.position.set(cx, cy + h / 2, cz);
+    mesh.castShadow = castShadow;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+}
+
+// Recessed Coffered Ceiling with Curved Hole Cutout & Warm Glow Cove Loop
+function buildCofferedCeiling(ceilingGroup, x1, z1, x2, z2, yBottom, coffers, downlights, MAT) {
+    const w = Math.abs(x2 - x1), d = Math.abs(z2 - z1);
+    const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
+
+    // Lower Gypsum Soffit Ring (outer plate with holes for recessed coffers)
+    const outer = new THREE.Shape();
+    outer.moveTo(-w / 2, -d / 2);
+    outer.lineTo(w / 2, -d / 2);
+    outer.lineTo(w / 2, d / 2);
+    outer.lineTo(-w / 2, d / 2);
+    outer.closePath();
+
+    coffers.forEach(c => {
+        const lx = c.cx - cx, lz = -(c.cz - cz); // because rotateX(-PI/2) flips Y->-Z
+        const hw = c.w / 2, hd = c.d / 2, r = Math.min(c.r || 0.35, hw - 0.05, hd - 0.05);
+        const hole = new THREE.Path();
+        hole.moveTo(lx - hw + r, lz - hd);
+        hole.lineTo(lx + hw - r, lz - hd);
+        hole.quadraticCurveTo(lx + hw, lz - hd, lx + hw, lz - hd + r);
+        hole.lineTo(lx + hw, lz + hd - r);
+        hole.quadraticCurveTo(lx + hw, lz + hd, lx + hw - r, lz + hd);
+        hole.lineTo(lx - hw + r, lz + hd);
+        hole.quadraticCurveTo(lx - hw, lz + hd, lx - hw, lz + hd - r);
+        hole.lineTo(lx - hw, lz - hd + r);
+        hole.quadraticCurveTo(lx - hw, lz - hd, lx - hw + r, lz - hd);
+        outer.holes.push(hole);
+    });
+
+    const soffitGeom = new THREE.ExtrudeGeometry(outer, { depth: 0.14, bevelEnabled: false, curveSegments: 16 });
+    soffitGeom.rotateX(-Math.PI / 2);
+    const soffitMesh = new THREE.Mesh(soffitGeom, MAT.ceilingDown);
+    soffitMesh.position.set(cx, yBottom, cz);
+    soffitMesh.receiveShadow = true;
+    ceilingGroup.add(soffitMesh);
+
+    // Recessed Upper Panels & Glowing Cove Loops inside each coffer
+    coffers.forEach(c => {
+        const coveY = yBottom + 0.14;
+        const innerShape = roundedRectShape(c.w + 0.18, c.d + 0.18, c.r || 0.35);
+        const upperGeom = new THREE.ExtrudeGeometry(innerShape, { depth: 0.06, bevelEnabled: false, curveSegments: 14 });
+        upperGeom.rotateX(-Math.PI / 2);
+        const upperMat = c.isSky ? MAT.skyPanel : MAT.ceilingDown;
+        const upperMesh = new THREE.Mesh(upperGeom, upperMat);
+        upperMesh.position.set(c.cx, coveY + 0.02, c.cz);
+        ceilingGroup.add(upperMesh);
+
+        // LED Cove Strip Loop tucked inside recess
+        const pts = roundedRectShape(c.w + 0.04, c.d + 0.04, c.r || 0.35).getPoints(28);
+        const pts3d = pts.map(p => new THREE.Vector3(c.cx + p.x, yBottom + 0.12, c.cz - p.y));
+        const loopCurve = new THREE.CatmullRomCurve3(pts3d, true);
+        const tubeMat = c.cool ? MAT.coveCool : MAT.coveWarm;
+        const tube = new THREE.Mesh(new THREE.TubeGeometry(loopCurve, 64, 0.024, 6, true), tubeMat);
+        ceilingGroup.add(tube);
+
+        // Optional Center Disc Light with Subtle Ceiling Pool Halo
+        if (c.centerDisc) {
+            const dr = c.centerDiscR || 0.24;
+            addCyl(ceilingGroup, c.cx, coveY - 0.015, c.cz, dr, dr, 0.025, MAT.downlightLED, 24, false);
+            addCyl(ceilingGroup, c.cx, coveY - 0.01, c.cz, dr + 0.03, dr + 0.03, 0.02, MAT.gold, 24, false);
+            const discHalo = new THREE.Mesh(new THREE.PlaneGeometry(dr * 4.5, dr * 4.5), MAT.lightHalo);
+            discHalo.rotation.x = Math.PI / 2;
+            discHalo.position.set(c.cx, coveY - 0.022, c.cz);
+            ceilingGroup.add(discHalo);
+        }
+        if (c.isSky) {
+            // Gold trim around sky panel
+            const trimPts = roundedRectShape(c.w, c.d, c.r || 0.35).getPoints(28).map(p => new THREE.Vector3(c.cx + p.x, yBottom + 0.02, c.cz - p.y));
+            const trimCurve = new THREE.CatmullRomCurve3(trimPts, true);
+            ceilingGroup.add(new THREE.Mesh(new THREE.TubeGeometry(trimCurve, 64, 0.02, 6, true), MAT.gold));
+        }
+    });
+
+    // Recessed Round Downlights + Soft Radial Light Pools
+    downlights.forEach(pt => {
+        const [dx, dz] = pt;
+        addCyl(ceilingGroup, dx, yBottom - 0.008, dz, 0.095, 0.095, 0.014, MAT.dentalWhite, 16, false);
+        addCyl(ceilingGroup, dx, yBottom - 0.011, dz, 0.068, 0.068, 0.010, MAT.downlightLED, 16, false);
+        const halo = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.55), MAT.lightHalo);
+        halo.rotation.x = Math.PI / 2;
+        halo.position.set(dx, yBottom - 0.016, dz);
+        ceilingGroup.add(halo);
+    });
+}
+
+// Stadium / Rounded-Rect Flush LED Ceiling Track (P09-11, P31-32)
+function addFlushLEDLoop(ceilingGroup, cx, y, cz, w, d, r, mat) {
+    const pts = roundedRectShape(w, d, r).getPoints(32).map(p => new THREE.Vector3(cx + p.x, y - 0.01, cz - p.y));
+    const curve = new THREE.CatmullRomCurve3(pts, true);
+    ceilingGroup.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 64, 0.028, 8, true), mat));
+}
+
+// Soft Floor Contact Shadow Decal Helper
+function addContactShadow(parent, cx, floorY, cz, w, d, MAT) {
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, d), MAT.contactShadow);
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.set(cx, floorY + 0.004, cz);
+    parent.add(plane);
+    return plane;
+}
+
+// Curved Glass Partition Wall + Gold U-Channels (100% Aligned Parametric Arc!)
+function addCurvedGlassWall(parent, cx, yBase, cz, radius, height, startAngle, endAngle, MAT) {
+    // Parametric angles where angle=0 is +X, +PI/2 is +Z, PI is -X, 1.5*PI is -Z
+    const segs = 24;
+    const glassPts = [];
+    for (let i = 0; i <= segs; i++) {
+        const a = startAngle + (endAngle - startAngle) * (i / segs);
+        glassPts.push(new THREE.Vector3(cx + Math.cos(a) * radius, yBase + height / 2, cz + Math.sin(a) * radius));
+    }
+    // Build curved glass strip via extruded arc band so angle math matches 100% identically!
+    const arcShape = new THREE.Shape();
+    const ccw = endAngle < startAngle;
+    // Remember rotateX(-PI/2) flips Y -> -Z, so negate angle for 2D Shape!
+    arcShape.absarc(0, 0, radius + 0.009, -startAngle, -endAngle, !ccw);
+    arcShape.absarc(0, 0, radius - 0.009, -endAngle, -startAngle, ccw);
+    arcShape.closePath();
+    const gGeom = new THREE.ExtrudeGeometry(arcShape, { depth: height - 0.06, bevelEnabled: false, curveSegments: 24 });
+    gGeom.rotateX(-Math.PI / 2);
+    const glassMat = MAT.glassClear.clone();
+    glassMat.side = THREE.DoubleSide;
+    const mesh = new THREE.Mesh(gGeom, glassMat);
+    mesh.position.set(cx, yBase + 0.03, cz);
+    parent.add(mesh);
+
+    // Identical top & bottom gold aluminum U-channels using same parametric arc points!
+    [yBase + 0.022, yBase + height - 0.022].forEach(ty => {
+        const trackPts = [];
+        for (let i = 0; i <= segs; i++) {
+            const a = startAngle + (endAngle - startAngle) * (i / segs);
+            trackPts.push(new THREE.Vector3(cx + Math.cos(a) * radius, ty, cz + Math.sin(a) * radius));
+        }
+        const curve = new THREE.CatmullRomCurve3(trackPts, false);
+        parent.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.025, 8, false), MAT.gold));
+    });
+}
+
+// Straight Framed Glass Partition + Gold Channels + Optional Privacy Band
+function addStraightGlassWall(parent, x1, y1, z1, x2, y2, z2, MAT, frostedBand = true) {
+    const len = Math.hypot(x2 - x1, z2 - z1);
+    const h = y2 - y1;
+    const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
+    const angle = Math.atan2(z2 - z1, x2 - x1);
+
+    const g = new THREE.Group();
+    g.position.set(cx, y1, cz);
+    g.rotation.y = -angle;
+
+    // Clear glass pane
+    const pane = new THREE.Mesh(new THREE.BoxGeometry(len, h - 0.06, 0.018), MAT.glassClear);
+    pane.position.y = h / 2;
+    g.add(pane);
+
+    // Horizontal privacy frosted band
+    if (frostedBand) {
+        const band = new THREE.Mesh(new THREE.PlaneGeometry(len, h * 0.72), MAT.glassFrostBand);
+        band.position.set(0, h * 0.45, 0.011);
+        g.add(band);
+        const bandBack = band.clone();
+        bandBack.rotation.y = Math.PI;
+        bandBack.position.z = -0.011;
+        g.add(bandBack);
+    }
+
+    // Gold top & bottom aluminum tracks
+    addBox(g, -len / 2, 0, -0.025, len / 2, 0.04, 0.025, MAT.gold, false);
+    addBox(g, -len / 2, h - 0.04, -0.025, len / 2, h, 0.025, MAT.gold, false);
+    // Vertical seam mullion on ends
+    addBox(g, -len / 2, 0, -0.022, -len / 2 + 0.03, h, 0.022, MAT.gold, false);
+    addBox(g, len / 2 - 0.03, 0, -0.022, len / 2, h, 0.022, MAT.gold, false);
+
+    parent.add(g);
+    return g;
+}
+
+// INTERACTIVE DOOR BUILDER (TRUE HINGE PIVOT & ARCHITECTURAL STYLES)
+// Style: 'frameless-glass' | 'white-multipane' | 'dark-fluted' | 'lead-sliding'
+function addArchitecturalDoor(parent, interactiveDoors, cfg, MAT) {
+    // cfg: { style, mode: 'swing'|'sliding', x, y, z, width, height, rotY, hingeSide: -1|1, openAngle, slideAxis: 'x'|'z', slideDist, name, sign }
+    const w = cfg.width || 0.9;
+    const h = cfg.height || 2.25;
+    const rotY = cfg.rotY || 0;
+    const hingeSide = cfg.hingeSide || -1; // -1 = left hinge, +1 = right hinge
+
+    // Outer Door Frame anchored at door center
+    const frameGroup = new THREE.Group();
+    frameGroup.position.set(cfg.x, cfg.y, cfg.z);
+    frameGroup.rotation.y = rotY;
+    parent.add(frameGroup);
+
+    // Solid 3cm Overhead Door Signage Plaque (Flush Front & Back Decals, zero floating gap!)
+    if (cfg.sign) {
+        const signMat = MAT.makeSignMat(cfg.sign);
+        const plaqueG = new THREE.Group();
+        plaqueG.position.set(0, h + 0.20, 0);
+        addBox(plaqueG, -0.49, -0.115, -0.016, 0.49, 0.115, 0.016, MAT.gold, false);
+        const signFront = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 0.22), signMat);
+        signFront.position.z = 0.019;
+        plaqueG.add(signFront);
+        const signBack = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 0.22), signMat);
+        signBack.rotation.y = Math.PI;
+        signBack.position.z = -0.019;
+        plaqueG.add(signBack);
+        frameGroup.add(plaqueG);
+    }
+
+    // Pivot Group placed at Hinge Edge for Swing, or Center for Sliding
+    const pivot = new THREE.Group();
+    const hingeX = cfg.mode === 'swing' ? hingeSide * (w / 2) : 0;
+    pivot.position.set(hingeX, 0, 0);
+    frameGroup.add(pivot);
+
+    // Leaf Group offset so leaf sits cleanly from 0 to -hingeSide*w
+    const leaf = new THREE.Group();
+    if (cfg.mode === 'swing') {
+        leaf.position.set(-hingeSide * (w / 2), 0, 0);
+    }
+    pivot.add(leaf);
+
+    let hitMesh = null;
+    const handleX = (cfg.mode === 'swing' ? -hingeSide : -1) * (w / 2 - 0.14);
+
+    if (cfg.style === 'frameless-glass') {
+        // Glass panel
+        hitMesh = addBox(leaf, -w / 2, 0.01, -0.012, w / 2, h, 0.012, MAT.glassClear, false);
+        // Frosted middle privacy band
+        const fb = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.02, h * 0.55), MAT.glassFrostBand);
+        fb.position.set(0, h * 0.48, 0.014);
+        leaf.add(fb);
+        // Gold top & bottom hydraulic patch hinges
+        addBox(leaf, -w / 2, 0.01, -0.022, -w / 2 + 0.16, 0.06, 0.022, MAT.gold, false);
+        addBox(leaf, -w / 2, h - 0.06, -0.022, -w / 2 + 0.16, h, 0.022, MAT.gold, false);
+        // Tall Gold Tubular Pull Handles on BOTH sides (P02, P06, P22, P30)
+        [-0.055, 0.055].forEach(hz => {
+            addCyl(leaf, handleX, 0.72, hz, 0.016, 0.016, 0.85, MAT.gold, 12, false);
+            addBox(leaf, handleX - 0.015, 0.78, Math.min(0, hz), handleX + 0.015, 0.81, Math.max(0, hz), MAT.gold, false);
+            addBox(leaf, handleX - 0.015, 1.48, Math.min(0, hz), handleX + 0.015, 1.51, Math.max(0, hz), MAT.gold, false);
+        });
+    } else if (cfg.style === 'white-multipane') {
+        // Outer casing frame
+        addBox(frameGroup, -w / 2 - 0.04, 0, -0.07, -w / 2, h + 0.04, 0.07, MAT.whiteWood);
+        addBox(frameGroup, w / 2, 0, -0.07, w / 2 + 0.04, h + 0.04, 0.07, MAT.whiteWood);
+        addBox(frameGroup, -w / 2 - 0.04, h, -0.07, w / 2 + 0.04, h + 0.05, 0.07, MAT.whiteWood);
+        // Door stiles & rails (P34, P41)
+        hitMesh = addBox(leaf, -w / 2, 0.01, -0.01, w / 2, h, 0.01, MAT.glassClear, false);
+        addBox(leaf, -w / 2, 0, -0.025, -w / 2 + 0.10, h, 0.025, MAT.whiteWood);
+        addBox(leaf, w / 2 - 0.10, 0, -0.025, w / 2, h, 0.025, MAT.whiteWood);
+        addBox(leaf, -w / 2, 0, -0.025, w / 2, 0.18, 0.025, MAT.whiteWood);
+        addBox(leaf, -w / 2, h - 0.12, -0.025, w / 2, h, 0.025, MAT.whiteWood);
+        // Horizontal & vertical mullions creating 6 panes
+        addBox(leaf, -0.015, 0.18, -0.018, 0.015, h - 0.12, 0.018, MAT.whiteWood, false);
+        [0.75, 1.32, 1.85].forEach(ry => addBox(leaf, -w / 2 + 0.1, ry - 0.015, -0.018, w / 2 - 0.1, ry + 0.015, 0.018, MAT.whiteWood, false));
+        // Lever handle
+        addBox(leaf, handleX - 0.06, 0.98, -0.05, handleX + 0.02, 1.02, 0.05, MAT.chrome, false);
+    } else if (cfg.style === 'dark-fluted') {
+        // Dark Walnut Door with tall fluted frosted glass panel (P14, P18, P30 WC)
+        addBox(frameGroup, -w / 2 - 0.04, 0, -0.07, -w / 2, h + 0.04, 0.07, MAT.darkWalnut);
+        addBox(frameGroup, w / 2, 0, -0.07, w / 2 + 0.04, h + 0.04, 0.07, MAT.darkWalnut);
+        addBox(frameGroup, -w / 2 - 0.04, h, -0.07, w / 2 + 0.04, h + 0.05, 0.07, MAT.darkWalnut);
+        hitMesh = addBox(leaf, -w / 2 + 0.13, 0.18, -0.01, w / 2 - 0.13, h - 0.14, 0.01, MAT.glassFrosted);
+        addBox(leaf, -w / 2, 0, -0.025, -w / 2 + 0.13, h, 0.025, MAT.darkWalnut);
+        addBox(leaf, w / 2 - 0.13, 0, -0.025, w / 2, h, 0.025, MAT.darkWalnut);
+        addBox(leaf, -w / 2, 0, -0.025, w / 2, 0.18, 0.025, MAT.darkWalnut);
+        addBox(leaf, -w / 2, h - 0.14, -0.025, w / 2, h, 0.025, MAT.darkWalnut);
+        addBox(leaf, handleX - 0.06, 0.98, -0.05, handleX + 0.02, 1.02, 0.05, MAT.chrome, false);
+    } else if (cfg.style === 'lead-sliding') {
+        // Brushed Steel Lead-Lined X-Ray Door (P18, P19)
+        hitMesh = addBox(leaf, -w / 2, 0.01, -0.03, w / 2, h, 0.03, MAT.stainlessLead);
+        // Top sliding rail
+        addBox(frameGroup, -w * 0.6, h + 0.02, -0.05, w * 1.4, h + 0.09, 0.05, MAT.chrome, false);
+        // Lead glass vision window
+        addBox(leaf, -0.15, 1.25, -0.035, 0.15, 1.55, 0.035, MAT.glassClear, false);
+        // Yellow radiation trefoil sticker
+        const trefoilMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+        addBox(leaf, -0.14, 1.62, -0.034, 0.14, 1.88, 0.034, trefoilMat, false);
+        // Gold vertical handle
+        addCyl(leaf, handleX, 0.85, 0.055, 0.016, 0.016, 0.45, MAT.gold, 10, false);
+        // Red Warning Light above frame
+        addCyl(frameGroup, 0, h + 0.42, -0.08, 0.045, 0.045, 0.08, MAT.redBeacon, 12, false);
+    }
+
+    // Store flat integer doorIdx in userData (prevents circular JSON/clone errors during OBJ/GLTF export)
+    const doorIdx = interactiveDoors.length;
+    const doorObj = {
+        pivot,
+        mode: cfg.mode || 'swing',
+        name: cfg.name || 'Cửa',
+        isOpen: false,
+        currentT: 0,
+        targetT: 0,
+        openAngle: cfg.openAngle || (Math.PI * 0.48),
+        slideDist: cfg.slideDist || (w * 0.92),
+        meshes: []
+    };
+
+    leaf.traverse(child => {
+        if (child.isMesh) {
+            child.userData = { isDoor: true, doorIdx: doorIdx };
+            doorObj.meshes.push(child);
+        }
+    });
+    interactiveDoors.push(doorObj);
+    return doorObj;
+}
+
+// Multi-pane White Painted Casement Window (P31, P35, P38, P44, P45)
+function addWhiteCasementWindow(parent, cx, yBottom, cz, width, height, rotY, panesX = 2, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, yBottom, cz);
+    g.rotation.y = rotY;
+
+    // Outer white frame & sill
+    addBox(g, -width / 2 - 0.06, -0.04, -0.13, width / 2 + 0.06, 0.04, 0.13, MAT.whiteWood);
+    addBox(g, -width / 2 - 0.04, height - 0.04, -0.11, width / 2 + 0.04, height + 0.04, 0.11, MAT.whiteWood);
+    addBox(g, -width / 2 - 0.04, 0, -0.11, -width / 2 + 0.04, height, 0.11, MAT.whiteWood);
+    addBox(g, width / 2 - 0.04, 0, -0.11, width / 2 + 0.04, height, 0.11, MAT.whiteWood);
+
+    // Glass sheet
+    const glass = new THREE.Mesh(new THREE.BoxGeometry(width - 0.08, height - 0.08, 0.015), MAT.glassClear);
+    glass.position.y = height / 2;
+    g.add(glass);
+
+    // Vertical & horizontal mullions splitting each bay into 2x3 panes
+    const totalCols = panesX * 2;
+    for (let i = 1; i < totalCols; i++) {
+        const px = -width / 2 + (i * width) / totalCols;
+        const thick = (i % 2 === 0) ? 0.032 : 0.016;
+        addBox(g, px - thick, 0.04, -0.025, px + thick, height - 0.04, 0.025, MAT.whiteWood, false);
+    }
+    [0.33, 0.66].forEach(f => {
+        const py = f * height;
+        addBox(g, -width / 2 + 0.04, py - 0.016, -0.025, width / 2 - 0.04, py + 0.016, 0.025, MAT.whiteWood, false);
+    });
+
+    parent.add(g);
+    return g;
+}
+
+// Recessed Rounded Arch Wall Niche with Halo LED (P31, P35)
+function addArchWallNiche(parent, cx, yBottom, cz, width, height, depth, rotY, fillMat, ledMat, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, yBottom, cz);
+    g.rotation.y = rotY;
+
+    const r = Math.min(0.45, width * 0.45);
+    const s = new THREE.Shape();
+    const hw = width / 2;
+    s.moveTo(-hw, 0);
+    s.lineTo(hw, 0);
+    s.lineTo(hw, height - r);
+    s.quadraticCurveTo(hw, height, hw - r, height);
+    s.lineTo(-hw + r, height);
+    s.quadraticCurveTo(-hw, height, -hw, height - r);
+    s.closePath();
+
+    const archGeom = new THREE.ExtrudeGeometry(s, { depth: depth, bevelEnabled: false, curveSegments: 16 });
+    const baseMat = (fillMat === MAT.worldMapWall) ? MAT.wallArchTan : fillMat;
+    const archMesh = new THREE.Mesh(archGeom, baseMat);
+    g.add(archMesh);
+
+    if (fillMat === MAT.worldMapWall) {
+        const mapPlane = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.14, height - 0.32), MAT.worldMapWall);
+        mapPlane.position.set(0, height * 0.46, depth + 0.004);
+        g.add(mapPlane);
+    }
+
+    if (ledMat) {
+        const archPath = new THREE.Path();
+        archPath.moveTo(-hw, 0.02);
+        archPath.lineTo(-hw, height - r);
+        archPath.quadraticCurveTo(-hw, height, -hw + r, height);
+        archPath.lineTo(hw - r, height);
+        archPath.quadraticCurveTo(hw, height, hw, height - r);
+        archPath.lineTo(hw, 0.02);
+        const pts = archPath.getPoints(44).map(p => new THREE.Vector3(p.x, p.y, depth + 0.008));
+        const curve = new THREE.CatmullRomCurve3(pts, false);
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 56, 0.015, 6, false), ledMat));
+    }
+
+    parent.add(g);
+    return g;
+}
+
+
+// ============================================================================
+// MODULE 3: ULTRA-DETAILED SCULPTED FURNITURE, CHAIRS, CHANDELIERS & MEDICAL UNITS
+// ============================================================================
+
+function buildCurvedReceptionCounter(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // Sweeping curved arc desk shape facing -Z in local coords (center of arc behind counter at +Z)
+    const rOut = 2.05, rIn = 1.48;
+    const sweep = Math.PI * 0.56;
+    const aStart = Math.PI * 0.5 - sweep / 2, aEnd = Math.PI * 0.5 + sweep / 2;
+
+    function makeArcShape(ri, ro, a0, a1) {
+        const s = new THREE.Shape();
+        s.absarc(0, 0, ro, a0, a1, false);
+        s.absarc(0, 0, ri, a1, a0, true);
+        s.closePath();
+        return s;
+    }
+
+    // Because rotateX(-PI/2) maps 2D +Y -> 3D -Z, placing arcCenterZ = +1.70 makes convex front curve sit neatly at Z = -0.35!
+    const arcCenterZ = 1.70;
+
+    // 1. Lower recessed champagne kickplate + warm floor glow
+    const plinthG = new THREE.ExtrudeGeometry(makeArcShape(rIn + 0.08, rOut - 0.06, aStart, aEnd), { depth: 0.34, bevelEnabled: false, curveSegments: 32 });
+    plinthG.rotateX(-Math.PI / 2);
+    const plinth = new THREE.Mesh(plinthG, MAT.wallArchTan);
+    plinth.position.set(0, 0, arcCenterZ);
+    plinth.castShadow = true; plinth.receiveShadow = true;
+    g.add(plinth);
+
+    // 2. Main curved marble body (Y: 0.34 .. 1.05)
+    const bodyG = new THREE.ExtrudeGeometry(makeArcShape(rIn, rOut, aStart, aEnd), { depth: 0.72, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, curveSegments: 36 });
+    bodyG.rotateX(-Math.PI / 2);
+    const body = new THREE.Mesh(bodyG, MAT.marbleWhite);
+    body.position.set(0, 0.34, arcCenterZ);
+    body.castShadow = true; body.receiveShadow = true;
+    g.add(body);
+
+    // 3. Curved gold reveal bands
+    [0.34, 0.72, 1.05].forEach(ry => {
+        const bandG = new THREE.ExtrudeGeometry(makeArcShape(rOut - 0.01, rOut + 0.018, aStart, aEnd), { depth: 0.022, bevelEnabled: false, curveSegments: 36 });
+        bandG.rotateX(-Math.PI / 2);
+        const band = new THREE.Mesh(bandG, MAT.gold);
+        band.position.set(0, ry, arcCenterZ);
+        g.add(band);
+    });
+
+    // 4. Sculpted 3D Shield Tooth Emblem on RIGHT-Front Wing (+X) & "DENTAL CLINIC" Badge on LEFT-Front Wing (-X) (P02!)
+    const shieldG = new THREE.Group();
+    const shieldAngle = 0.36; // +X right wing of front marble arc facing -Z lobby
+    shieldG.position.set(Math.sin(shieldAngle) * (rOut + 0.03), 0.56, arcCenterZ - Math.cos(shieldAngle) * (rOut + 0.03));
+    shieldG.rotation.y = Math.PI - shieldAngle;
+
+    const sShape = new THREE.Shape();
+    sShape.moveTo(0, -0.40);
+    sShape.bezierCurveTo(0.30, -0.26, 0.34, 0.05, 0.32, 0.34);
+    sShape.lineTo(0, 0.42);
+    sShape.lineTo(-0.32, 0.34);
+    sShape.bezierCurveTo(-0.34, 0.05, -0.30, -0.26, 0, -0.40);
+
+    const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(sShape, { depth: 0.05, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012 }), MAT.gold);
+    shieldG.add(rim);
+
+    // Symmetrical 3D Tooth Relief inside Shield
+    const tShape = new THREE.Shape();
+    tShape.moveTo(0, 0.16);
+    tShape.bezierCurveTo(-0.10, 0.24, -0.22, 0.18, -0.20, 0.02);
+    tShape.bezierCurveTo(-0.18, -0.12, -0.13, -0.26, -0.08, -0.26);
+    tShape.bezierCurveTo(-0.04, -0.26, -0.02, -0.12, 0, -0.12);
+    tShape.bezierCurveTo(0.02, -0.12, 0.04, -0.26, 0.08, -0.26);
+    tShape.bezierCurveTo(0.13, -0.26, 0.18, -0.12, 0.20, 0.02);
+    tShape.bezierCurveTo(0.22, 0.18, 0.10, 0.24, 0, 0.16);
+    const toothRelief = new THREE.Mesh(new THREE.ExtrudeGeometry(tShape, { depth: 0.028, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006 }), MAT.coveWarm);
+    toothRelief.position.z = 0.055;
+    shieldG.add(toothRelief);
+    g.add(shieldG);
+
+    // "DENTAL CLINIC" Gold Badge Flush on LEFT-Front Wing (-X) completely separated from Shield
+    const dcAngle = -0.36;
+    const dcMat = MAT.makeSignMat('DENTAL CLINIC', 'rgba(0,0,0,0)', '#d1a858');
+    const dcPlaque = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.24), dcMat);
+    dcPlaque.position.set(Math.sin(dcAngle) * (rOut + 0.025), 0.62, arcCenterZ - Math.cos(dcAngle) * (rOut + 0.025));
+    dcPlaque.rotation.y = Math.PI - dcAngle;
+    g.add(dcPlaque);
+
+    // 5. Delicate clear glass flower vase moved cleanly to FAR RIGHT (+1.32) away from wall logo + 2 low iMacs + 2 white swivel task chairs
+    addContactShadow(g, 0, 0, 0.05, 4.2, 2.1, MAT);
+    addCyl(g, 1.32, 1.07, 0.22, 0.065, 0.085, 0.20, MAT.glassClear, 18);
+    for (let b = 0; b < 8; b++) {
+        const ang = (b / 8) * Math.PI * 2;
+        const stem = addCyl(g, 1.32, 1.22, 0.22, 0.004, 0.004, 0.26, MAT.gold, 6, false);
+        stem.rotation.z = Math.cos(ang) * 0.40;
+        stem.rotation.x = Math.sin(ang) * 0.40;
+        const leafCluster = new THREE.Mesh(new THREE.IcosahedronGeometry(0.045, 1), MAT.gold);
+        leafCluster.position.set(1.32 + Math.cos(ang) * 0.11, 1.42 + (b % 3) * 0.03, 0.22 + Math.sin(ang) * 0.11);
+        g.add(leafCluster);
+    }
+    [-0.45, 0.35].forEach(mx => {
+        // Low-profile iMac (Chrome backplate faces lobby guests -Z; macOS desktop UI faces staff +Z, stays under Y=1.42 so Wall Logo is clear!)
+        addBox(g, mx - 0.05, 1.07, -0.03, mx + 0.05, 1.085, 0.07, MAT.chrome, false);
+        addBox(g, mx - 0.018, 1.085, 0.015, mx + 0.018, 1.19, 0.04, MAT.chrome, false);
+        addBox(g, mx - 0.22, 1.14, 0.02, mx + 0.22, 1.41, 0.038, MAT.chrome);
+        addBox(g, mx - 0.205, 1.155, 0.038, mx + 0.205, 1.395, 0.042, MAT.screenMacOS, false);
+    });
+
+    buildOfficeSwivelChair(g, -0.45, 0, 0.56, Math.PI, MAT.fabricCream, MAT);
+    buildOfficeSwivelChair(g, 0.35, 0, 0.56, Math.PI, MAT.fabricCream, MAT);
+
+    parent.add(g);
+    return g;
+}
+
+// High-back Ribbed Office / Conference Swivel Chair (P02, P06, P14, P15)
+function buildOfficeSwivelChair(parent, cx, cy, cz, rotY, upholsteryMat, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // 5-star chrome wheel base
+    addCyl(g, 0, 0.07, 0, 0.032, 0.038, 0.38, MAT.chrome, 12);
+    for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2;
+        const leg = addBox(g, -0.015, 0.055, 0, 0.015, 0.085, 0.30, MAT.chrome, false);
+        leg.position.set(Math.sin(a) * 0.15, 0.07, Math.cos(a) * 0.15);
+        leg.rotation.y = a;
+        addCyl(g, Math.sin(a) * 0.28, 0, Math.cos(a) * 0.28, 0.025, 0.025, 0.05, MAT.darkWalnut, 10, false);
+    }
+    // Contoured beveled seat & tall ribbed backrest
+    addBeveledBox(g, 0, 0.44, 0, 0.48, 0.09, 0.48, 0.08, upholsteryMat, 0.02);
+    const back = addBeveledBox(g, 0, 0, 0, 0.45, 0.62, 0.08, 0.08, upholsteryMat, 0.02);
+    back.position.set(0, 0.50, -0.22);
+    back.rotation.x = -0.12;
+    // Horizontal chrome/upholstery armrests
+    [-0.25, 0.25].forEach(ax => {
+        addBox(g, ax - 0.015, 0.48, -0.08, ax + 0.015, 0.65, -0.04, MAT.chrome, false);
+        addBeveledBox(g, ax, 0.65, 0.02, 0.04, 0.03, 0.30, 0.015, upholsteryMat, 0.008);
+    });
+
+    parent.add(g);
+    return g;
+}
+
+// Curved-back Gold-Leg Cafe / Guest Chair (P03, P04, P05, P06, P09)
+function buildCafeGoldChair(parent, cx, cy, cz, rotY, upholsteryMat, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // 4 slim angled gold tubular legs
+    [[-0.19, -0.19], [0.19, -0.19], [-0.19, 0.19], [0.19, 0.19]].forEach(([lx, lz]) => {
+        const leg = addCyl(g, lx, 0, lz, 0.013, 0.010, 0.44, MAT.gold, 10);
+        leg.rotation.z = -lx * 0.22;
+        leg.rotation.x = lz * 0.22;
+    });
+
+    // Round beveled seat cushion
+    addCyl(g, 0, 0.43, 0, 0.23, 0.22, 0.075, upholsteryMat, 20);
+    // Gold seat apron ring
+    addCyl(g, 0, 0.42, 0, 0.22, 0.22, 0.02, MAT.gold, 20, false);
+
+    // Wrap-around curved ergonomic backrest (ExtrudeGeometry arc)
+    const backShape = new THREE.Shape();
+    backShape.absarc(0, 0, 0.24, Math.PI * 0.12, Math.PI * 0.88, false);
+    backShape.absarc(0, 0, 0.19, Math.PI * 0.88, Math.PI * 0.12, true);
+    backShape.closePath();
+    const backG = new THREE.ExtrudeGeometry(backShape, { depth: 0.28, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.012, curveSegments: 20 });
+    backG.rotateX(-Math.PI / 2);
+    const backMesh = new THREE.Mesh(backG, upholsteryMat);
+    backMesh.position.set(0, 0.56, 0.02);
+    backMesh.castShadow = true;
+    g.add(backMesh);
+
+    // Gold vertical back supports
+    [-0.14, 0.14].forEach(bx => addCyl(g, bx, 0.45, -0.18, 0.012, 0.012, 0.18, MAT.gold, 8, false));
+
+    parent.add(g);
+    return g;
+}
+
+// Tulip Pedestal Marble Cafe Table + Open Laptop (P03, P04, P05)
+function buildCafeTableSet(parent, cx, cy, cz, chairAngleOffset, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+
+    // Flared Tulip Pedestal using LatheGeometry
+    const pts = [
+        new THREE.Vector2(0.28, 0.0),
+        new THREE.Vector2(0.28, 0.025),
+        new THREE.Vector2(0.11, 0.14),
+        new THREE.Vector2(0.055, 0.36),
+        new THREE.Vector2(0.065, 0.62),
+        new THREE.Vector2(0.20, 0.72),
+        new THREE.Vector2(0.0, 0.72)
+    ];
+    const base = new THREE.Mesh(new THREE.LatheGeometry(pts, 28), MAT.dentalWhite);
+    base.castShadow = true; base.receiveShadow = true;
+    g.add(base);
+    // Gold floor trim ring
+    addCyl(g, 0, 0.0, 0, 0.285, 0.285, 0.018, MAT.gold, 28, false);
+    // Round white marble tabletop
+    addCyl(g, 0, 0.72, 0, 0.46, 0.46, 0.03, MAT.marbleWhite, 32);
+
+    // Open silver laptop on table
+    addBox(g, -0.16, 0.75, -0.10, 0.16, 0.762, 0.12, MAT.chrome, false);
+    const screen = addBox(g, -0.16, 0.76, -0.11, 0.16, 0.96, -0.098, MAT.chrome, false);
+    screen.rotation.x = -0.22;
+    addBox(g, -0.145, 0.78, -0.095, 0.145, 0.94, -0.092, MAT.screenMacOS, false).rotation.x = -0.22;
+
+    // 3 Curved-Back Beige Cafe Chairs arranged evenly around table + floor contact shadow
+    addContactShadow(g, 0, 0, 0, 1.9, 1.9, MAT);
+    for (let i = 0; i < 3; i++) {
+        const a = chairAngleOffset + (i * Math.PI * 2) / 3;
+        buildCafeGoldChair(g, Math.cos(a) * 0.66, 0, Math.sin(a) * 0.66, Math.atan2(-Math.cos(a), -Math.sin(a)), MAT.leatherTan, MAT);
+    }
+
+    parent.add(g);
+    return g;
+}
+
+// Plush Barrel / Tub Armchair (P04, P05, P42, P43)
+function buildBarrelArmchair(parent, cx, cy, cz, rotY, fabricMat, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // Thick round seat cushion + floor contact shadow
+    addContactShadow(g, 0, 0, 0, 1.05, 1.05, MAT);
+    addCyl(g, 0, 0.06, 0, 0.40, 0.39, 0.34, fabricMat, 24);
+    addCyl(g, 0, 0.0, 0, 0.36, 0.36, 0.06, MAT.darkWalnut, 20);
+
+    // Curved U-shaped wrap-around barrel back & arms
+    const backShape = new THREE.Shape();
+    backShape.absarc(0, 0, 0.43, -Math.PI * 0.15, Math.PI * 1.15, false);
+    backShape.absarc(0, 0, 0.30, Math.PI * 1.15, -Math.PI * 0.15, true);
+    backShape.closePath();
+    const backG = new THREE.ExtrudeGeometry(backShape, { depth: 0.44, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.025, curveSegments: 24 });
+    backG.rotateX(-Math.PI / 2);
+    const backMesh = new THREE.Mesh(backG, fabricMat);
+    backMesh.position.set(0, 0.38, 0);
+    backMesh.castShadow = true; backMesh.receiveShadow = true;
+    g.add(backMesh);
+
+    parent.add(g);
+    return g;
+}
+
+// Sculpted Lounge Sofa with Beveled Cushions & Pillows (P04, P05, P42, P43)
+function buildSofa(parent, cx, cy, cz, rotY, len, pillowMat, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // Brass recessed plinth base
+    addBeveledBox(g, 0, 0, 0, len - 0.08, 0.08, 0.80, 0.04, MAT.gold, 0.005);
+    // Frame deck
+    addBeveledBox(g, 0, 0.08, 0, len, 0.20, 0.86, 0.06, MAT.fabricCream, 0.015);
+    // 3 Separate seat cushions
+    const segW = (len - 0.28) / 3;
+    for (let i = -1; i <= 1; i++) {
+        addBeveledBox(g, i * (segW + 0.01), 0.27, 0.06, segW, 0.16, 0.66, 0.06, MAT.fabricCream, 0.025);
+        addBeveledBox(g, i * (segW + 0.01), 0.42, -0.26, segW, 0.42, 0.18, 0.06, MAT.fabricCream, 0.025);
+    }
+    // Side armrests
+    [-len / 2 + 0.08, len / 2 - 0.08].forEach(ax => {
+        addBeveledBox(g, ax, 0.26, 0, 0.16, 0.42, 0.86, 0.06, MAT.fabricCream, 0.02);
+    });
+    // Back frame
+    addBeveledBox(g, 0, 0.26, -0.35, len, 0.60, 0.16, 0.05, MAT.fabricCream, 0.02);
+
+    // Soft contact shadow + Angled Throw Pillows
+    addContactShadow(g, 0, 0, 0, len + 0.3, 1.15, MAT);
+    [[-len / 2 + 0.34, 0.28], [len / 2 - 0.34, -0.28]].forEach(([px, rz]) => {
+        const p = addBeveledBox(g, px, 0.45, -0.10, 0.34, 0.34, 0.11, 0.05, pillowMat, 0.02);
+        p.rotation.x = -0.35;
+        p.rotation.z = rz;
+    });
+
+    parent.add(g);
+    return g;
+}
+
+// ULTRA-DETAILED SCULPTED DENTAL UNIT (P10-13, P24-26, P31-33)
+function buildSculptedDentalUnit(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // 1. Streamlined Floor Base Plate + Lifting Pantograph
+    addBeveledBox(g, 0, 0, 0, 0.62, 0.08, 1.38, 0.22, MAT.dentalWhite, 0.015);
+    const liftArm = addBox(g, -0.12, 0.08, -0.15, 0.12, 0.46, 0.15, MAT.dentalWhite);
+    liftArm.rotation.x = -0.2;
+
+    // 2. Sculpted Contoured Cushion Chair (Beige/Tan Cowhide Leather 24-11)
+    // Seat pan
+    addBeveledBox(g, 0, 0.48, 0.0, 0.56, 0.12, 0.58, 0.12, MAT.leatherTan, 0.03);
+    // Reclined Anatomical Backrest (tapered upper back)
+    const backG = new THREE.Group();
+    backG.position.set(0, 0.54, 0.26);
+    backG.rotation.x = -0.45;
+    addBeveledBox(backG, 0, 0.34, 0, 0.50, 0.68, 0.10, 0.14, MAT.leatherTan, 0.025);
+    // Headrest on chrome slider bar
+    addCyl(backG, 0, 0.68, 0, 0.02, 0.02, 0.14, MAT.chrome, 10, false);
+    addBeveledBox(backG, 0, 0.85, 0.03, 0.26, 0.18, 0.08, 0.06, MAT.leatherTan, 0.02);
+    g.add(backG);
+
+    // Articulated Legrest + Protective Clear Foot Cover
+    const legG = new THREE.Group();
+    legG.position.set(0, 0.50, -0.26);
+    legG.rotation.x = 0.38;
+    addBeveledBox(legG, 0, -0.24, -0.18, 0.50, 0.52, 0.10, 0.12, MAT.leatherTan, 0.025);
+    addBeveledBox(legG, 0, -0.42, -0.14, 0.48, 0.18, 0.11, 0.08, MAT.glassFrostBand, 0.01);
+    g.add(legG);
+
+    // Side Armrests
+    [-0.31, 0.31].forEach(ax => {
+        const arm = addBeveledBox(g, ax, 0.60, 0.02, 0.08, 0.06, 0.40, 0.03, MAT.leatherTan, 0.015);
+        arm.rotation.x = -0.15;
+    });
+
+    // 3. Side Spittoon Water Unit + Hollowed Ceramic Cuspidor Bowl + Assistant Manifold
+    addContactShadow(g, 0, 0, 0, 1.9, 2.1, MAT);
+    addBeveledBox(g, -0.46, 0.12, 0.12, 0.34, 0.72, 0.56, 0.12, MAT.dentalWhite, 0.02);
+    // Real hollowed porcelain cuspidor bowl via LatheGeometry
+    const bowlPts = [
+        new THREE.Vector2(0.03, 0.0), new THREE.Vector2(0.11, 0.03),
+        new THREE.Vector2(0.15, 0.11), new THREE.Vector2(0.14, 0.11),
+        new THREE.Vector2(0.10, 0.045), new THREE.Vector2(0.0, 0.04)
+    ];
+    const bowl = new THREE.Mesh(new THREE.LatheGeometry(bowlPts, 24), MAT.dentalWhite);
+    bowl.position.set(-0.52, 0.82, 0.22);
+    bowl.castShadow = true;
+    g.add(bowl);
+    addCyl(g, -0.55, 0.90, 0.22, 0.012, 0.012, 0.12, MAT.chrome, 10, false);
+    // Assistant Suction Arm
+    addBox(g, -0.52, 0.76, -0.08, -0.38, 0.84, 0.08, MAT.dentalWhite);
+
+    // 4. Compact Delivery Joint (Ends at Y=1.04 so ZERO vertical post blocks Wall TV!)
+    addCyl(g, -0.42, 0.78, 0.25, 0.032, 0.032, 0.26, MAT.dentalWhite, 12);
+    const arm1 = addBox(g, -0.42, 1.02, 0.0, 0.18, 1.08, 0.06, MAT.dentalWhite);
+    arm1.rotation.y = 0.45;
+    // Tray body
+    addBeveledBox(g, 0.22, 0.96, -0.26, 0.56, 0.06, 0.34, 0.05, MAT.dentalWhite, 0.01);
+    addBeveledBox(g, 0.22, 1.02, -0.26, 0.48, 0.01, 0.28, 0.03, MAT.stainlessLead, 0.002);
+    // 4 Tilted Handpieces & Coiled Curved Silicone Tubes!
+    for (let t = 0; t < 4; t++) {
+        const hx = 0.04 + t * 0.11;
+        const hp = addCyl(g, hx, 0.95, -0.45, 0.011, 0.011, 0.13, MAT.chrome, 8, false);
+        hp.rotation.x = -0.35;
+        const hoseCurve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(hx, 0.94, -0.46),
+            new THREE.Vector3(hx, 0.56, -0.52),
+            new THREE.Vector3(hx - 0.03, 0.38, -0.38),
+            new THREE.Vector3(hx - 0.05, 0.88, -0.28)
+        ]);
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(hoseCurve, 16, 0.008, 6, false), MAT.spaLinen));
+    }
+
+    // 5. Sleek Curved Overhead Articulated Lamp Boom & Side-Swung Dental Monitor (Never blocks wall TV!)
+    const lampCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.42, 0.96, 0.25),
+        new THREE.Vector3(-0.56, 1.56, 0.28),
+        new THREE.Vector3(-0.34, 1.88, 0.06),
+        new THREE.Vector3(-0.02, 1.78, -0.16)
+    ]);
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(lampCurve, 22, 0.017, 10, false), MAT.dentalWhite));
+    // Sculpted C-Head LED Dental Light with dual chrome grab handles
+    addBeveledBox(g, 0.02, 1.74, -0.16, 0.30, 0.055, 0.18, 0.06, MAT.dentalWhite, 0.01);
+    addBox(g, -0.07, 1.72, -0.21, 0.11, 1.74, -0.11, MAT.downlightLED, false);
+    [-0.14, 0.18].forEach(lx => addCyl(g, lx, 1.66, -0.16, 0.009, 0.009, 0.09, MAT.chrome, 8, false));
+
+    // Patient Display Monitor Swung Sideways Clear of Backrest (Support post cleanly BEHIND bezel)
+    addBox(g, 0.42, 1.03, -0.36, 0.46, 1.25, -0.335, MAT.chrome, false);
+    addBeveledBox(g, 0.44, 1.14, -0.32, 0.36, 0.22, 0.022, 0.018, MAT.marbleBlack, 0.004);
+    addBox(g, 0.28, 1.16, -0.307, 0.60, 1.34, -0.304, MAT.screenDentalArch, false);
+
+    // Chrome + Rubber Foot Controller Pedal on Floor
+    addCyl(g, 0.38, 0, -0.68, 0.10, 0.11, 0.032, MAT.marbleBlack, 16);
+    addCyl(g, 0.38, 0.032, -0.68, 0.055, 0.055, 0.014, MAT.chrome, 12, false);
+
+    // 6. Doctor Swivel Stool + Assistant Stool
+    [[-0.78, -0.15, true], [0.76, -0.05, false]].forEach(([sx, sz, hasBack]) => {
+        const sg = new THREE.Group();
+        sg.position.set(sx, 0, sz);
+        addCyl(sg, 0, 0.06, 0, 0.025, 0.03, 0.40, MAT.chrome, 12);
+        for (let i = 0; i < 5; i++) {
+            const a = (i / 5) * Math.PI * 2;
+            const l = addBox(sg, -0.01, 0.05, 0, 0.01, 0.07, 0.24, MAT.chrome, false);
+            l.position.set(Math.sin(a) * 0.12, 0.06, Math.cos(a) * 0.12);
+            l.rotation.y = a;
+        }
+        addCyl(sg, 0, 0.45, 0, 0.20, 0.19, 0.08, MAT.leatherTan, 20);
+        if (hasBack) {
+            addBeveledBox(sg, -0.18, 0.65, 0, 0.07, 0.26, 0.32, 0.05, MAT.leatherTan, 0.015);
+        } else {
+            // Circular support bar for assistant stool
+            addCyl(sg, 0.18, 0.62, 0, 0.015, 0.015, 0.18, MAT.chrome, 8, false);
+        }
+        g.add(sg);
+    });
+
+    parent.add(g);
+    return g;
+}
+
+// Detailed Aesthetic Reclining Chair + Ring Lamp + Clear Acrylic Trolley (P35-37)
+function buildAestheticChair(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // Dark heavy pedestal base + contact shadow
+    addContactShadow(g, 0, 0, 0, 1.4, 2.0, MAT);
+    addBeveledBox(g, 0, 0, 0, 0.56, 0.10, 0.92, 0.12, MAT.marbleBlack, 0.015);
+    addBox(g, -0.15, 0.10, -0.18, 0.15, 0.45, 0.18, MAT.marbleBlack);
+    // Contoured ribbed tan leather seat, footrest & tall reclined back
+    addBeveledBox(g, 0, 0.45, 0.0, 0.62, 0.14, 0.56, 0.10, MAT.leatherTan, 0.03);
+    const leg = addBeveledBox(g, 0, 0, 0, 0.58, 0.12, 0.58, 0.10, MAT.leatherTan, 0.03);
+    leg.position.set(0, 0.32, -0.52); leg.rotation.x = 0.52;
+    const back = addBeveledBox(g, 0, 0, 0, 0.60, 0.12, 0.72, 0.10, MAT.leatherTan, 0.03);
+    back.position.set(0, 0.66, 0.55); back.rotation.x = -0.52;
+    addBeveledBox(g, 0, 0.88, 0.88, 0.32, 0.12, 0.22, 0.08, MAT.leatherTan, 0.02);
+    [-0.35, 0.35].forEach(ax => addBeveledBox(g, ax, 0.56, 0.12, 0.08, 0.14, 0.44, 0.04, MAT.leatherTan, 0.015));
+
+    // Arched Dual-Arm Aesthetic Lamp beside bed (Weighted base + angled gooseneck arm to ring head)
+    addCyl(g, 0.42, 0, 0.45, 0.14, 0.14, 0.03, MAT.marbleBlack, 16);
+    addCyl(g, 0.42, 0.03, 0.45, 0.015, 0.015, 1.24, MAT.marbleBlack, 10);
+    const neckCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0.42, 1.26, 0.45),
+        new THREE.Vector3(0.36, 1.42, 0.45),
+        new THREE.Vector3(0.24, 1.38, 0.45)
+    ]);
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(neckCurve, 12, 0.011, 8, false), MAT.chrome));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.016, 8, 24), MAT.downlightLED);
+    ring.position.set(0.14, 1.32, 0.45);
+    ring.rotation.x = Math.PI * 0.35;
+    g.add(ring);
+
+    // Clear 3-tier acrylic rolling cart beside chair
+    const cart = new THREE.Group();
+    cart.position.set(-0.62, 0, 0.2);
+    [[-0.18, -0.14], [0.18, -0.14], [-0.18, 0.14], [0.18, 0.14]].forEach(([px, pz]) => addCyl(cart, px, 0.04, pz, 0.012, 0.012, 0.78, MAT.chrome, 8, false));
+    [0.14, 0.46, 0.78].forEach(ty => addBeveledBox(cart, 0, ty, 0, 0.42, 0.02, 0.34, 0.04, MAT.glassFrosted, 0.003));
+    g.add(cart);
+
+    parent.add(g);
+    return g;
+}
+
+// Draped Spa Massage Bed + Wooden Tea Tray + Tufted Stool (P38, P39, P40)
+function buildSpaBed(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // Draped floor-length linen skirt + contact shadows
+    addContactShadow(g, 0, 0, 0, 1.15, 2.25, MAT);
+    addContactShadow(g, 0, 0, 1.24, 0.55, 0.55, MAT);
+    addBeveledBox(g, 0, 0, 0, 0.84, 0.62, 1.92, 0.08, MAT.spaLinen, 0.02);
+    // Mattress cushion pad
+    addBeveledBox(g, 0, 0.60, 0, 0.86, 0.10, 1.94, 0.08, MAT.fabricCream, 0.025);
+    // Tan fabric runner drape at center/foot
+    addBeveledBox(g, 0, 0.68, 0.42, 0.87, 0.03, 0.62, 0.02, MAT.leatherTan, 0.005);
+    // Bolster pillow centered cleanly on mattress
+    const bol = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.58, 16), MAT.fabricCream);
+    bol.rotation.z = Math.PI / 2;
+    bol.position.set(0, 0.76, -0.72);
+    bol.castShadow = true;
+    g.add(bol);
+    // Wooden tea tray with teapot & 2 cups
+    addBeveledBox(g, 0, 0.71, -0.15, 0.42, 0.03, 0.28, 0.03, MAT.darkWalnut, 0.005);
+    addCyl(g, -0.06, 0.74, -0.15, 0.06, 0.05, 0.09, MAT.dentalWhite, 12, false);
+    addCyl(g, 0.08, 0.74, -0.18, 0.03, 0.025, 0.045, MAT.dentalWhite, 10, false);
+    addCyl(g, 0.08, 0.74, -0.10, 0.03, 0.025, 0.045, MAT.dentalWhite, 10, false);
+
+    // Round tufted brown spa stool at foot
+    addCyl(g, 0, 0.0, 1.24, 0.21, 0.20, 0.42, MAT.leatherDark, 20);
+
+    parent.add(g);
+    return g;
+}
+
+// Consultation Desk Set (P06-10)
+function buildConsultationDeskSet(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // Rounded end modesty panel & drawer pedestal
+    addBeveledBox(g, 0, 0.72, 0, 1.62, 0.05, 0.74, 0.06, MAT.whiteWood, 0.01);
+    addBeveledBox(g, -0.58, 0, 0, 0.42, 0.72, 0.66, 0.04, MAT.whiteWood, 0.01);
+    addBeveledBox(g, 0.58, 0, 0, 0.42, 0.72, 0.66, 0.04, MAT.whiteWood, 0.01);
+    addBox(g, -0.37, 0.06, -0.26, 0.37, 0.68, -0.22, MAT.wallArchTan);
+    // Gold vertical corner trims on desk
+    addBox(g, -0.78, 0.02, 0.32, -0.75, 0.72, 0.34, MAT.gold, false);
+    addBox(g, 0.75, 0.02, 0.32, 0.78, 0.72, 0.34, MAT.gold, false);
+
+    // Black leather desk pad & iMac (Chrome back toward guests +Z, macOS desktop UI toward doctor -Z) + Contact Shadow
+    addContactShadow(g, 0, 0, 0, 1.95, 1.65, MAT);
+    addBox(g, -0.35, 0.77, -0.14, 0.35, 0.78, 0.26, MAT.marbleBlack, false);
+    addBox(g, -0.06, 0.78, -0.10, 0.06, 0.86, -0.06, MAT.chrome, false);
+    addBeveledBox(g, 0, 0.81, -0.07, 0.54, 0.34, 0.022, 0.015, MAT.chrome, 0.003);
+    addBox(g, -0.24, 0.84, -0.088, 0.24, 1.12, -0.082, MAT.screenMacOS, false);
+
+    // Swivel doctor chair & 2 curved guest chairs
+    buildOfficeSwivelChair(g, 0, 0, -0.58, 0, MAT.fabricCream, MAT);
+    buildCafeGoldChair(g, -0.34, 0, 0.68, Math.PI, MAT.leatherTan, MAT);
+    buildCafeGoldChair(g, 0.34, 0, 0.68, Math.PI, MAT.leatherTan, MAT);
+
+    parent.add(g);
+    return g;
+}
+
+// Sculpted Marble Staircase with Floor-to-Ceiling Vertical White Rods (P16, P22, P27)
+function buildStaircase(parent, xMin, xMax, zBottom, zTop, yMin, yMax, MAT) {
+    const g = new THREE.Group();
+    const steps = 15;
+    const totalHeight = yMax - yMin;
+    const stepH = totalHeight / steps;
+    const stepD = Math.abs(zTop - zBottom) / steps;
+    const dirZ = zTop > zBottom ? 1 : -1;
+
+    for (let i = 0; i < steps; i++) {
+        const sy = yMin + i * stepH;
+        const sz = zBottom + dirZ * i * stepD;
+        // Solid structural marble riser + tread nose
+        addBox(g, xMin, sy, Math.min(sz, sz + dirZ * stepD), xMax, sy + stepH, Math.max(sz, sz + dirZ * stepD), MAT.marbleBrown);
+        addBox(g, xMin - 0.02, sy + stepH - 0.03, Math.min(sz, sz + dirZ * stepD) - 0.015, xMax + 0.02, sy + stepH, Math.max(sz, sz + dirZ * stepD) + 0.015, MAT.marbleWhite, false);
+    }
+
+    // Tall vertical white rod screen along the open side (xMin) from step up to floor 2 ceiling!
+    const rodCount = 14;
+    for (let r = 0; r < rodCount; r++) {
+        const f = r / (rodCount - 1);
+        const rz = zBottom + dirZ * f * Math.abs(zTop - zBottom);
+        const ryBase = yMin + f * totalHeight;
+        addCyl(g, xMin + 0.02, ryBase, rz, 0.012, 0.012, (yMax + 2.8) - ryBase, MAT.dentalWhite, 8, false);
+    }
+
+    parent.add(g);
+    return g;
+}
+
+// Sleek 3-Blade Contoured Ceiling Fan (P03, P04, P05, P42)
+function buildCeilingFan(parent, rotatingFans, cx, cy, cz, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    // Downrod & motor hub
+    addCyl(g, 0, -0.22, 0, 0.022, 0.022, 0.24, MAT.dentalWhite, 10, false);
+    addCyl(g, 0, -0.28, 0, 0.12, 0.10, 0.08, MAT.dentalWhite, 20, false);
+    addCyl(g, 0, -0.30, 0, 0.07, 0.07, 0.02, MAT.downlightLED, 16, false);
+
+    const blades = new THREE.Group();
+    blades.position.y = -0.24;
+    for (let i = 0; i < 3; i++) {
+        const bGroup = new THREE.Group();
+        bGroup.rotation.y = (i * Math.PI * 2) / 3;
+        const bShape = new THREE.Shape();
+        bShape.moveTo(0.08, -0.04);
+        bShape.bezierCurveTo(0.25, -0.09, 0.55, -0.07, 0.72, -0.02);
+        bShape.quadraticCurveTo(0.75, 0.01, 0.70, 0.04);
+        bShape.bezierCurveTo(0.48, 0.06, 0.25, 0.05, 0.08, 0.04);
+        bShape.closePath();
+        const bGeom = new THREE.ExtrudeGeometry(bShape, { depth: 0.012, bevelEnabled: false });
+        bGeom.rotateX(-Math.PI / 2);
+        const blade = new THREE.Mesh(bGeom, MAT.dentalWhite);
+        blade.rotation.x = 0.14;
+        bGroup.add(blade);
+        blades.add(bGroup);
+    }
+    g.add(blades);
+    parent.add(g);
+    rotatingFans.push(blades);
+    return g;
+}
+
+// Sparkling Leaf / Crystal Cloud Chandelier (P02, P03, P05)
+function buildCloudChandelier(parent, cx, cy, cz, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    const petalMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xeef6ff, emissiveIntensity: 0.4, transparent: true, opacity: 0.8, roughness: 0.15, metalness: 0.2 });
+    const petalGeom = new THREE.ConeGeometry(0.06, 0.16, 4);
+    for (let i = 0; i < 55; i++) {
+        const angle = i * 2.39996;
+        const rad = Math.sqrt(i / 55) * 0.95;
+        const px = Math.cos(angle) * rad * 1.45;
+        const pz = Math.sin(angle) * rad * 0.75;
+        const py = -0.10 - (1 - rad) * 0.32 - ((i % 3) * 0.06);
+        const m = new THREE.Mesh(petalGeom, petalMat);
+        m.position.set(px, py, pz);
+        m.rotation.set((i % 5) * 0.3, angle, Math.PI + (i % 4) * 0.2);
+        g.add(m);
+    }
+    parent.add(g);
+    return g;
+}
+
+// Surgical Shadowless Multi-LED Ceiling Lamp (P24, P25, P26)
+function buildSurgicalCeilingLamp(parent, cx, yCeiling, cz, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, yCeiling, cz);
+
+    // Ceiling mount column + dual articulated swing arms
+    addCyl(g, 0, -0.35, 0, 0.09, 0.09, 0.35, MAT.dentalWhite, 16);
+    addBox(g, -0.03, -0.40, -0.03, 0.45, -0.34, 0.03, MAT.dentalWhite);
+    addBox(g, 0.38, -0.62, -0.025, 0.44, -0.34, 0.025, MAT.dentalWhite);
+
+    // Sculpted large circular surgical dome at arm end
+    const head = new THREE.Group();
+    head.position.set(0.32, -0.68, 0.05);
+    head.rotation.x = 0.25;
+    addCyl(head, 0, 0, 0, 0.44, 0.42, 0.06, MAT.dentalWhite, 28);
+    // 6-petal glowing LED lenses underneath
+    for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        addCyl(head, Math.cos(a) * 0.24, -0.015, Math.sin(a) * 0.24, 0.085, 0.085, 0.02, MAT.downlightLED, 16, false);
+    }
+    addCyl(head, 0, -0.015, 0, 0.075, 0.075, 0.02, MAT.downlightLED, 16, false);
+    // Sterile center handle
+    addCyl(head, 0, -0.14, 0, 0.02, 0.025, 0.13, MAT.chrome, 12, false);
+    g.add(head);
+
+    parent.add(g);
+    return g;
+}
+
+// CT Cone Beam 3D Panoramic Scanner (P19, P20)
+function buildCTScanner(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // Contoured beveled floor base plate
+    addBeveledBox(g, 0, 0, 0, 0.85, 0.05, 0.85, 0.18, MAT.dentalWhite, 0.01);
+    // Tapered architectural tower column
+    addBeveledBox(g, 0, 0.05, -0.22, 0.32, 2.08, 0.24, 0.06, MAT.dentalWhite, 0.015);
+    // Illuminated vertical strip on column
+    addBox(g, -0.025, 0.30, -0.098, 0.025, 1.90, -0.092, MAT.downlightLED, false);
+    // Overhead motorized arm extending forward
+    addBeveledBox(g, 0, 1.98, 0.08, 0.26, 0.16, 0.72, 0.05, MAT.dentalWhite, 0.01);
+    // Circular gantry turret + C-arm yoke
+    addCyl(g, 0, 1.86, 0.28, 0.18, 0.18, 0.14, MAT.dentalWhite, 24);
+    addBeveledBox(g, 0, 1.80, 0.28, 0.96, 0.08, 0.20, 0.06, MAT.dentalWhite, 0.01);
+    // X-ray emitter tube (left) & Flat-panel detector (right)
+    addBeveledBox(g, -0.44, 1.46, 0.28, 0.14, 0.56, 0.22, 0.04, MAT.dentalWhite, 0.01);
+    addBeveledBox(g, 0.44, 1.44, 0.28, 0.14, 0.58, 0.24, 0.04, MAT.dentalWhite, 0.01);
+    // Patient chin rest & dual handgrips
+    addBeveledBox(g, 0, 1.12, 0.14, 0.38, 0.06, 0.26, 0.04, MAT.dentalWhite, 0.01);
+    [-0.16, 0.16].forEach(hx => addCyl(g, hx, 1.18, 0.22, 0.014, 0.014, 0.20, MAT.chrome, 10, false));
+
+    parent.add(g);
+    return g;
+}
+
+// Wash Vanity Cabinet + Marble Counter + Backlit Oval / Wide Mirror (P16, P23, P32, P36, P38)
+function buildVanityCabinet(parent, cx, cy, cz, rotY, width, mirrorType, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // White cabinet body with drawer reveals & gold knobs
+    addBox(g, -width / 2, 0, -0.28, width / 2, 0.80, 0.28, MAT.whiteWood);
+    addBox(g, -width / 2 - 0.01, 0.80, -0.30, width / 2 + 0.01, 0.85, 0.30, MAT.marbleWhite);
+    // Drawer grid & gold pulls
+    const cols = Math.max(2, Math.round(width / 0.55));
+    const cw = width / cols;
+    for (let i = 0; i < cols; i++) {
+        const dx = -width / 2 + (i + 0.5) * cw;
+        addBox(g, dx - 0.05, 0.64, 0.285, dx + 0.05, 0.66, 0.295, MAT.gold, false);
+        addBox(g, dx - 0.05, 0.42, 0.285, dx + 0.05, 0.44, 0.295, MAT.gold, false);
+    }
+    // Sink basin + Chrome gooseneck faucet
+    addCyl(g, 0, 0.85, 0, 0.20, 0.18, 0.05, MAT.dentalWhite, 20, false);
+    addCyl(g, 0, 0.85, -0.18, 0.015, 0.015, 0.24, MAT.chrome, 10, false);
+
+    // Mirror: 'tall-oval' (P23, P24, P32) | 'wide-oval' (P36, P38)
+    if (mirrorType === 'tall-oval') {
+        const mShape = roundedRectShape(0.56, 1.05, 0.27);
+        const mGeom = new THREE.ExtrudeGeometry(mShape, { depth: 0.02, bevelEnabled: false, curveSegments: 20 });
+        const mirror = new THREE.Mesh(mGeom, MAT.chrome);
+        mirror.position.set(0, 1.62, -0.25);
+        g.add(mirror);
+        // Backlit halo & hanging gold rod to ceiling
+        const hGeom = new THREE.ExtrudeGeometry(roundedRectShape(0.60, 1.09, 0.29), { depth: 0.01, bevelEnabled: false, curveSegments: 20 });
+        const halo = new THREE.Mesh(hGeom, MAT.coveWarm);
+        halo.position.set(0, 1.62, -0.265);
+        g.add(halo);
+        addCyl(g, 0, 2.14, -0.25, 0.012, 0.012, 0.66, MAT.gold, 8, false);
+    } else if (mirrorType === 'wide-oval') {
+        const mw = Math.max(1.2, width * 0.72);
+        const mGeom = new THREE.ExtrudeGeometry(roundedRectShape(mw, 0.64, 0.31), { depth: 0.02, bevelEnabled: false, curveSegments: 20 });
+        const mirror = new THREE.Mesh(mGeom, MAT.chrome);
+        mirror.position.set(0, 1.48, -0.25);
+        g.add(mirror);
+        const hGeom = new THREE.ExtrudeGeometry(roundedRectShape(mw + 0.04, 0.68, 0.33), { depth: 0.01, bevelEnabled: false, curveSegments: 20 });
+        const halo = new THREE.Mesh(hGeom, MAT.coveWarm);
+        halo.position.set(0, 1.48, -0.265);
+        g.add(halo);
+    }
+
+    parent.add(g);
+    return g;
+}
+
+// Conference Table Set + 6 Chairs + Executive Desk + Display Shelves (P14, P15)
+function buildConferenceSet(parent, cx, cy, cz, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+
+    // Long rounded-corner white & wood conference table + contact shadow
+    addContactShadow(g, 0, 0, 0, 3.0, 2.2, MAT);
+    addBeveledBox(g, 0, 0.72, 0, 2.55, 0.05, 1.05, 0.20, MAT.warmWood, 0.01);
+    addBeveledBox(g, 0, 0.755, 0, 2.35, 0.02, 0.85, 0.16, MAT.dentalWhite, 0.005);
+    addBox(g, -0.85, 0, -0.35, -0.65, 0.72, 0.35, MAT.warmWood);
+    addBox(g, 0.65, 0, -0.35, 0.85, 0.72, 0.35, MAT.warmWood);
+    // Center cable boxes & flower bowl
+    addBox(g, -0.75, 0.77, -0.08, -0.55, 0.785, 0.08, MAT.marbleBlack, false);
+    addBox(g, 0.55, 0.77, -0.08, 0.75, 0.785, 0.08, MAT.marbleBlack, false);
+    addCyl(g, 0, 0.77, 0, 0.14, 0.10, 0.14, MAT.plantGreen, 14, false);
+
+    // 6 High-back white ribbed conference chairs
+    [-0.78, 0, 0.78].forEach(kx => {
+        buildOfficeSwivelChair(g, kx, 0, -0.76, 0, MAT.fabricCream, MAT);
+        buildOfficeSwivelChair(g, kx, 0, 0.76, Math.PI, MAT.fabricCream, MAT);
+    });
+
+    parent.add(g);
+    return g;
+}
+
+// Potted Indoor Ornamental Plant (Dracaena / Monstera)
+function buildPottedPlant(parent, cx, cy, cz, scale, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    addCyl(g, 0, 0, 0, 0.18 * scale, 0.12 * scale, 0.42 * scale, MAT.dentalWhite, 14);
+    for (let i = 0; i < 9; i++) {
+        const a = (i / 9) * Math.PI * 2;
+        const leaf = addBeveledBox(g, Math.cos(a) * 0.14 * scale, 0.46 * scale + (i % 3) * 0.10 * scale, Math.sin(a) * 0.14 * scale, 0.14 * scale, 0.02, 0.36 * scale, 0.05, MAT.plantGreen, 0.005);
+        leaf.rotation.y = -a + Math.PI / 2;
+        leaf.rotation.x = 0.45 + (i % 2) * 0.2;
+    }
+    parent.add(g);
+    return g;
+}
+
+
+// ============================================================================
+// MODULE 3B: EXTRA TINY ARCHITECTURAL DETAILS (BLINDS, LAMPS, AC, SHRINE, ETC.)
+// ============================================================================
+
+// Horizontal Striped Zebra Roller Blind (P03, P04, P09, P15)
+function addZebraBlind(parent, cx, yTop, cz, width, dropH, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, yTop, cz);
+    g.rotation.y = rotY;
+    // Aluminum top cassette housing
+    addBeveledBox(g, 0, -0.04, 0, width + 0.04, 0.08, 0.08, 0.02, MAT.whiteWood, 0.005);
+    // Fabric roller blind sheet
+    const sheet = new THREE.Mesh(new THREE.PlaneGeometry(width, dropH), MAT.zebraBlind);
+    sheet.position.set(0, -0.08 - dropH / 2, 0.01);
+    g.add(sheet);
+    // Weighted bottom aluminum bar
+    addBox(g, -width / 2, -0.10 - dropH, -0.015, width / 2, -0.07 - dropH, 0.015, MAT.whiteWood, false);
+    parent.add(g);
+    return g;
+}
+
+// Wall-Mounted Split Air Conditioner Unit + Mini CCTV Dome (P07, P10, P15, P24, P31, P35, P38, P44)
+function addWallAC(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+    addBeveledBox(g, 0, 0, 0.11, 0.96, 0.28, 0.22, 0.05, MAT.dentalWhite, 0.015);
+    addBox(g, -0.42, -0.08, 0.18, 0.42, -0.04, 0.22, MAT.marbleBlack, false); // Vent louver
+    addBox(g, 0.28, -0.02, 0.222, 0.36, 0.02, 0.226, MAT.uvBlue, false);     // LED indicator
+    parent.add(g);
+    return g;
+}
+
+function addCCTVDome(parent, cx, cy, cz, MAT) {
+    addCyl(parent, cx, cy - 0.04, cz, 0.06, 0.06, 0.04, MAT.dentalWhite, 12, false);
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), MAT.marbleBlack);
+    dome.position.set(cx, cy - 0.04, cz);
+    parent.add(dome);
+}
+
+// Thần Tài Floor Shrine (P02)
+function buildThanTaiShrine(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+    // Lower pedestal base (bottom at Y=0)
+    addBeveledBox(g, 0, 0.0, 0, 0.56, 0.12, 0.48, 0.03, MAT.whiteWood, 0.008);
+    // Side walls & back
+    addBox(g, -0.26, 0.12, -0.22, -0.21, 0.72, 0.18, MAT.whiteWood);
+    addBox(g, 0.21, 0.12, -0.22, 0.26, 0.72, 0.18, MAT.whiteWood);
+    addBox(g, -0.26, 0.12, -0.22, 0.26, 0.72, -0.17, MAT.wallPeach);
+    // Roof canopy
+    addBeveledBox(g, 0, 0.74, -0.02, 0.62, 0.08, 0.50, 0.04, MAT.whiteWood, 0.01);
+    // Interior Thần Tài gold figure, red LED, incense burner & cups
+    addCyl(g, 0, 0.14, -0.08, 0.07, 0.09, 0.20, MAT.gold, 12);
+    addCyl(g, 0, 0.34, -0.08, 0.055, 0.055, 0.09, MAT.leatherTan, 12);
+    addCyl(g, 0, 0.12, 0.08, 0.045, 0.035, 0.05, MAT.gold, 10, false); // Incense bowl
+    addBox(g, -0.14, 0.64, -0.15, 0.14, 0.68, -0.13, MAT.redBeacon, false);
+    parent.add(g);
+}
+
+// Hexagonal Marble Coffee Table + Gold Wireframe Base + Pouf Ottomans (P04, P05, P42)
+function buildHexCoffeeTableSet(parent, cx, cy, cz, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    // Hexagonal marble top
+    addCyl(g, 0, 0.38, 0, 0.42, 0.42, 0.035, MAT.marbleBlack, 6);
+    addCyl(g, 0, 0.375, 0, 0.43, 0.43, 0.015, MAT.gold, 6, false);
+    // Geometric gold wireframe frame
+    for (let i = 0; i < 6; i++) {
+        const a1 = (i / 6) * Math.PI * 2;
+        const a2 = ((i + 1) / 6) * Math.PI * 2;
+        addCyl(g, Math.cos(a1) * 0.34, 0, Math.sin(a1) * 0.34, 0.01, 0.01, 0.38, MAT.gold, 8, false);
+        const bar = addBox(g, -0.008, 0.01, 0, 0.008, 0.025, 0.34, MAT.gold, false);
+        bar.position.set((Math.cos(a1) + Math.cos(a2)) * 0.17, 0.015, (Math.sin(a1) + Math.sin(a2)) * 0.17);
+        bar.rotation.y = a1 + Math.PI / 6;
+    }
+    // Magazine & coffee cup on tabletop
+    addBox(g, -0.16, 0.415, -0.08, 0.06, 0.425, 0.14, MAT.dentalWhite, false);
+    addCyl(g, 0.15, 0.415, 0.05, 0.04, 0.03, 0.05, MAT.dentalWhite, 10, false);
+
+    // 2 Round cream cylinder ottomans / poufs
+    [-0.78, 0.78].forEach(ox => {
+        addCyl(g, ox, 0, 0.05, 0.22, 0.22, 0.36, MAT.fabricCream, 20);
+        addCyl(g, ox, 0, 0.05, 0.225, 0.225, 0.02, MAT.gold, 20, false);
+    });
+    parent.add(g);
+}
+
+// Armchair Club Corner on Round Grey Rug + Gold Filigree Side Table (P04, P05)
+function buildArmchairLoungeNook(parent, cx, cy, cz, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    // Soft circular area rug
+    addCyl(g, 0, 0.002, 0, 1.15, 1.15, 0.012, MAT.rugGrey, 32, false);
+    // 2 Plush Barrel Armchairs facing toward cafe/lobby
+    buildBarrelArmchair(g, 0, 0, -0.68, -0.45, MAT.fabricTaupe, MAT);
+    buildBarrelArmchair(g, 0, 0, 0.68, -2.55, MAT.fabricTaupe, MAT);
+    // Gold geometric drum side table with bouquet
+    addCyl(g, 0.15, 0, 0, 0.24, 0.24, 0.48, MAT.gold, 12);
+    addCyl(g, 0.15, 0.48, 0, 0.25, 0.25, 0.02, MAT.marbleWhite, 20, false);
+    addCyl(g, 0.15, 0.50, 0, 0.08, 0.06, 0.22, MAT.glassClear, 12, false);
+    for (let b = 0; b < 6; b++) {
+        const a = (b / 6) * Math.PI * 2;
+        addCyl(g, 0.15 + Math.cos(a) * 0.10, 0.72, Math.sin(a) * 0.10, 0.06, 0.03, 0.12, MAT.gold, 8, false);
+    }
+    parent.add(g);
+}
+
+// Sculpted 3D Double S-Wave Feature Wall in Clinic T1 (P12, P13)
+function buildWaveFeatureWall(parent, cx, yBottom, cz, width, height, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, yBottom, cz);
+    g.rotation.y = rotY;
+
+    // White base wall
+    addBox(g, -width / 2, 0, -0.08, width / 2, height, 0.02, MAT.wallWhite);
+
+    // Sculpted flowing white S-wave relief band
+    const wShape = new THREE.Shape();
+    const hw = width * 0.48;
+    wShape.moveTo(-hw, 0.45);
+    wShape.bezierCurveTo(-hw * 0.4, 0.45, -hw * 0.2, 1.85, 0.2, 1.55);
+    wShape.bezierCurveTo(hw * 0.5, 1.35, hw * 0.6, 0.55, hw, 0.85);
+    wShape.lineTo(hw, 1.45);
+    wShape.bezierCurveTo(hw * 0.55, 1.15, hw * 0.45, 1.95, 0.1, 2.05);
+    wShape.bezierCurveTo(-hw * 0.25, 2.20, -hw * 0.45, 0.85, -hw, 0.95);
+    wShape.closePath();
+
+    const waveMesh = new THREE.Mesh(new THREE.ExtrudeGeometry(wShape, { depth: 0.06, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.01, curveSegments: 28 }), MAT.dentalWhite);
+    waveMesh.position.z = 0.02;
+    waveMesh.castShadow = true;
+    g.add(waveMesh);
+
+    // Gold/Teal inlaid inner ribbon accent
+    const gShape = new THREE.Shape();
+    gShape.moveTo(-hw, 0.62);
+    gShape.bezierCurveTo(-hw * 0.42, 0.62, -hw * 0.22, 1.98, 0.15, 1.72);
+    gShape.bezierCurveTo(hw * 0.48, 1.52, hw * 0.58, 0.72, hw, 1.02);
+    gShape.lineTo(hw, 1.24);
+    gShape.bezierCurveTo(hw * 0.55, 0.94, hw * 0.45, 1.74, 0.12, 1.86);
+    gShape.bezierCurveTo(-hw * 0.25, 2.02, -hw * 0.45, 0.75, -hw, 0.78);
+    gShape.closePath();
+
+    const goldWave = new THREE.Mesh(new THREE.ExtrudeGeometry(gShape, { depth: 0.02, bevelEnabled: false, curveSegments: 28 }), MAT.gold);
+    goldWave.position.z = 0.082;
+    g.add(goldWave);
+
+    // Warm LED cove glowing curve along bottom edge of wave
+    const ledCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-hw, 0.44, 0.025),
+        new THREE.Vector3(-hw * 0.3, 1.25, 0.025),
+        new THREE.Vector3(0.2, 1.54, 0.025),
+        new THREE.Vector3(hw * 0.7, 0.80, 0.025),
+        new THREE.Vector3(hw, 0.84, 0.025)
+    ]);
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(ledCurve, 36, 0.016, 6, false), MAT.coveWarm));
+
+    // Curved Header Text "HERE COME'S THE BEST DENTISTS" (Full-width unclipped banner faithful to 24-11 render!)
+    const txtMat = MAT.makeSignMat("HERE COME'S THE BEST DENTISTS", 'rgba(0,0,0,0)', '#5c4b37');
+    const txtMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.48), txtMat);
+    txtMesh.position.set(0.05, 2.26, 0.035);
+    g.add(txtMesh);
+
+    parent.add(g);
+    return g;
+}
+
+// Illuminated Shelving Credenza Unit (P06, P07, P14)
+function buildLitBookcaseCredenza(parent, cx, cy, cz, rotY, width, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+
+    // Lower closed cabinet (Y: 0 .. 0.82)
+    addBox(g, -width / 2, 0, -0.22, width / 2, 0.82, 0.22, MAT.whiteWood);
+    addBox(g, -width / 2 - 0.01, 0.82, -0.23, width / 2 + 0.01, 0.86, 0.23, MAT.marbleWhite);
+    // Back accent board (sage/cream)
+    addBox(g, -width / 2, 0.86, -0.20, width / 2, 2.72, -0.17, MAT.wallCream);
+    // 4 Open illuminated shelves (Y: 1.25, 1.70, 2.15, 2.60)
+    [1.25, 1.70, 2.15, 2.60].forEach(sy => {
+        addBeveledBox(g, 0, sy, 0.0, width, 0.04, 0.36, 0.02, MAT.whiteWood, 0.005);
+        addBox(g, -width / 2 + 0.05, sy - 0.01, -0.14, width / 2 - 0.05, sy, -0.10, MAT.coveWarm, false); // LED strip under shelf
+    });
+    // Vertical tan architectural dividers staggered between shelves
+    [-width * 0.25, width * 0.25].forEach((dx, idx) => {
+        addBox(g, dx - 0.04, 0.86, -0.14, dx + 0.04, 1.70, 0.14, MAT.wallArchTan);
+        addBox(g, -dx - 0.04, 1.70, -0.14, -dx + 0.04, 2.60, 0.14, MAT.wallArchTan);
+    });
+
+    parent.add(g);
+    return g;
+}
+
+// 20-Cubby Curved-Corner Shoe / Locker Unit (P17)
+function buildCubbyLockerUnit(parent, cx, cy, cz, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, cy, cz);
+    g.rotation.y = rotY;
+    const w = 2.4, h = 2.45;
+    addBeveledBox(g, 0, 0, 0, w, 0.65, 0.42, 0.06, MAT.wallPeach, 0.01); // Lower doors
+    addBeveledBox(g, 0, 0.65, 0, w, 1.80, 0.38, 0.06, MAT.wallArchTan, 0.01);
+    // 5x4 open grid slats
+    for (let r = 0; r <= 4; r++) {
+        addBox(g, -w / 2 + 0.04, 0.65 + r * 0.44, -0.19, w / 2 - 0.04, 0.68 + r * 0.44, 0.20, MAT.wallPeach);
+    }
+    for (let c = 0; c <= 5; c++) {
+        addBox(g, -w / 2 + 0.04 + c * ((w - 0.08) / 5), 0.65, -0.19, -w / 2 + 0.07 + c * ((w - 0.08) / 5), 2.43, 0.20, MAT.wallPeach);
+    }
+    parent.add(g);
+}
+
+// Scalloped Layered Vertical Wave Wall in Spa (P38)
+function buildScallopedSpaWall(parent, cx, yBottom, cz, width, height, rotY, MAT) {
+    const g = new THREE.Group();
+    g.position.set(cx, yBottom, cz);
+    g.rotation.y = rotY;
+    addBox(g, -width / 2, 0, -0.06, width / 2, height, 0, MAT.flutedCream);
+    const cols = 11;
+    const cw = width / cols;
+    for (let i = 0; i < cols; i++) {
+        const px = -width / 2 + (i + 0.5) * cw;
+        const dropLen = 0.65 + ((Math.sin(i * 1.1) + 1) * 0.45);
+        addBeveledBox(g, px, height - dropLen, 0.02, cw * 0.88, dropLen, 0.04, cw * 0.42, i % 2 === 0 ? MAT.wallArchTan : MAT.wallPeach, 0.008);
+    }
+    parent.add(g);
+}
+
+
+// ============================================================================
+// MODULE 4: FLOOR 1 COMPLETE ARCHITECTURAL SCENE (P01 - P20 EXACT BLUEPRINT)
+// Metric Blueprint: X in [-10.0 Front .. +10.0 Rear], Z in [-5.3 Top .. +5.3 Bottom]
+// ============================================================================
+
+function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatingFans, MAT) {
+    const H1 = 3.2;
+
+    // 1. Entrance Porch with Terracotta Tile & Curved Top-Left Corner (P01)
+    const porchShape = roundedRectShape(2.0, 10.6, 0.85);
+    const porchG = new THREE.ExtrudeGeometry(porchShape, { depth: 0.16, bevelEnabled: false, curveSegments: 16 });
+    porchG.rotateX(-Math.PI / 2);
+    const porch = new THREE.Mesh(porchG, MAT.terracotta);
+    porch.position.set(-10.5, -0.18, 0);
+    porch.receiveShadow = true;
+    floor1Group.add(porch);
+
+    // 2. Main Floor Slab T1 (White marble + red diamond inserts)
+    addBox(floor1Group, -10.05, -0.16, -5.35, 10.05, 0.0, 5.35, MAT.floorT1, false);
+
+    // 3. Structural Columns along Exterior Perimeters (5 bays x 2 sides + mid column)
+    [-10.0, -5.0, 0.0, 5.0, 10.0].forEach(cx => {
+        addBox(floor1Group, cx - 0.22, 0, -5.35, cx + 0.22, H1, -4.95, MAT.wallWhite);
+        addBox(floor1Group, cx - 0.22, 0, 4.95, cx + 0.22, H1, 5.35, MAT.wallWhite);
+    });
+    // Mid-facade pier on front entrance (P01, Z = -0.35)
+    addBox(floor1Group, -10.12, 0, -0.60, -9.75, H1, -0.10, MAT.wallWhite);
+
+    // 4. Exterior Walls & Curtain Glass with Zebra Blinds
+    // Rear solid wall (X = +10.0)
+    addBox(floor1Group, 9.85, 0, -5.3, 10.05, H1, 5.3, MAT.wallWhite);
+    // Bottom exterior wall (Z = +5.3) - Solid interior wall with white baseboard
+    addBox(floor1Group, -10.0, 0, 5.15, 10.0, H1, 5.35, MAT.wallWhite);
+    addBox(floor1Group, -10.0, 0, 5.08, 10.0, 0.12, 5.16, MAT.wallCream, false);
+
+    // Top Exterior Wall (Z = -5.3): Full floor-to-ceiling glass curtain wall with Zebra Blinds & frosted lower band!
+    addStraightGlassWall(floor1Group, -9.8, 0, -5.18, 9.8, H1, -5.18, MAT, false);
+    // Lower frosted diamond-lattice privacy decal band (h=0.75m along bottom glass, P03, P09, P11)
+    addBox(floor1Group, -9.8, 0.02, -5.15, 9.8, 0.78, -5.13, MAT.glassFrostBand, false);
+    // Zebra Roller Blinds along top bays (P03, P04, P09, P10, P15)
+    [-7.5, -2.5, 2.5, 7.5].forEach(bx => addZebraBlind(floor1Group, bx, H1 - 0.05, -5.06, 4.4, 1.05, 0, MAT));
+
+    // Front Facade Curtain Glass + TWO Interactive Double Glass Doors (P01)
+    addStraightGlassWall(floor1Group, -9.96, 0, -5.0, -9.96, H1, -3.5, MAT, false);
+    addStraightGlassWall(floor1Group, -9.96, 0, -1.7, -9.96, H1, -0.6, MAT, false);
+    addStraightGlassWall(floor1Group, -9.96, 0, -0.1, -9.96, H1, 1.4, MAT, false);
+    addStraightGlassWall(floor1Group, -9.96, 0, 3.2, -9.96, H1, 5.0, MAT, false);
+    addBox(floor1Group, -10.02, 2.30, -5.0, -9.90, H1, 5.0, MAT.glassClear, false); // Transom
+    addZebraBlind(floor1Group, -9.84, H1 - 0.05, -2.8, 4.4, 1.15, Math.PI / 2, MAT);
+    addZebraBlind(floor1Group, -9.84, H1 - 0.05, 2.4, 4.6, 1.15, Math.PI / 2, MAT);
+
+    // Pair 1 Front Double Entrance Doors (Top-left waiting entrance)
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Kính Mặt Tiền Trên (Trái)',
+        x: -9.96, y: 0, z: -3.05, width: 0.9, height: 2.3, rotY: Math.PI / 2, hingeSide: -1, openAngle: Math.PI * 0.45
+    }, MAT);
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Kính Mặt Tiền Trên (Phải)',
+        x: -9.96, y: 0, z: -2.15, width: 0.9, height: 2.3, rotY: Math.PI / 2, hingeSide: 1, openAngle: -Math.PI * 0.45
+    }, MAT);
+    // Pair 2 Front Double Entrance Doors (Main Reception Entrance)
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Chính Sảnh Lễ Tân (Trái)',
+        x: -9.96, y: 0, z: 1.85, width: 0.9, height: 2.3, rotY: Math.PI / 2, hingeSide: -1, openAngle: Math.PI * 0.45
+    }, MAT);
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Chính Sảnh Lễ Tân (Phải)',
+        x: -9.96, y: 0, z: 2.75, width: 0.9, height: 2.3, rotY: Math.PI / 2, hingeSide: 1, openAngle: -Math.PI * 0.45
+    }, MAT);
+
+    // =========================================================================
+    // ZONE 1: SẢNH TIẾP ĐÓN & QUẦY LỄ TÂN (X: -10.0 to -3.4, P01-P05)
+    // =========================================================================
+    // Backlit Onyx Reception Backdrop Wall + Flanking Gold Fluted Strips + 2 Gold Sconces (P02)
+    addBox(floor1Group, -8.35, 0, 5.02, -4.15, 2.88, 5.14, MAT.logoWall);
+    [-8.48, -4.02].forEach(gx => {
+        addBox(floor1Group, gx - 0.12, 0, 5.04, gx + 0.12, 2.95, 5.15, MAT.gold);
+        // Vertical glowing light slots + gold minimalist wall sconce with globes (P02)
+        addBox(floor1Group, gx - 0.02, 0.1, 5.02, gx + 0.02, 2.9, 5.03, MAT.coveWarm, false);
+        const sx = gx < -6 ? -8.65 : -3.85;
+        addCyl(floor1Group, sx, 1.35, 4.98, 0.012, 0.012, 0.58, MAT.gold, 8, false);
+        addCyl(floor1Group, sx, 1.55, 4.95, 0.045, 0.045, 0.045, MAT.coveWarm, 12, false);
+    });
+    // Yellow backlit floor mat behind reception desk (P01)
+    addBox(floor1Group, -7.2, 0.005, 4.55, -5.2, 0.02, 4.92, MAT.coveWarm, false);
+
+    // Curved Marble Reception Counter (P02) - includes integrated Shield & "DENTAL CLINIC" left badge
+    buildCurvedReceptionCounter(floor1Group, -6.25, 0, 3.85, 0, MAT);
+
+    // Thần Tài Shrine at front-right corner (P02)
+    buildThanTaiShrine(floor1Group, -9.35, 0, 4.78, Math.PI, MAT);
+
+    // Waiting Lounge (Top-left X: -9.0..-3.8, Z: -4.8..-0.2, P03-P05)
+    buildSofa(floor1Group, -7.2, 0, -4.45, 0, 2.35, MAT.fabricPastelMint, MAT);
+    // 2 Black TVs hanging from ceiling rods in front of glass wall (P03, P04, P05)
+    [-7.75, -6.65].forEach(tx => {
+        addCyl(floor1Group, tx - 0.18, 2.15, -4.82, 0.01, 0.01, 0.85, MAT.marbleBlack, 6, false);
+        addCyl(floor1Group, tx + 0.18, 2.15, -4.82, 0.01, 0.01, 0.85, MAT.marbleBlack, 6, false);
+        addBeveledBox(floor1Group, tx, 1.62, -4.82, 0.88, 0.52, 0.03, 0.02, MAT.marbleBlack, 0.005);
+        addBox(floor1Group, tx - 0.41, 1.65, -4.80, tx + 0.41, 2.11, -4.795, MAT.tvGlossBlack, false);
+    });
+    buildHexCoffeeTableSet(floor1Group, -7.2, 0, -3.25, MAT);
+    buildCafeTableSet(floor1Group, -7.8, 0, -1.25, 0.4, MAT);
+    buildCafeTableSet(floor1Group, -5.6, 0, -1.25, 1.1, MAT);
+    buildArmchairLoungeNook(floor1Group, -4.25, 0, -3.10, MAT);
+    buildPottedPlant(floor1Group, -4.25, 0, -4.70, 1.2, MAT);
+    buildPottedPlant(floor1Group, -3.85, 0, 4.75, 1.0, MAT);
+
+    // =========================================================================
+    // ZONE 2: PHÒNG TƯ VẤN BÁC SĨ T1 (X: -3.4 to 0.0, Z: 1.85 to 5.15, P02, P06-P08)
+    // =========================================================================
+    // Curved-Corner Glass Partition (P02, P06)
+    const rCurve = 0.85;
+    addCurvedGlassWall(floor1Group, -3.4 + rCurve, 0, 1.85 + rCurve, rCurve, H1, Math.PI, Math.PI * 1.5, MAT);
+    addStraightGlassWall(floor1Group, -3.4 + rCurve, 0, 1.85, 0.0, 0, 1.85, MAT, false);
+    addStraightGlassWall(floor1Group, -3.4, 0, 4.2, -3.4, H1, 5.15, MAT, true);
+    // Transom & Entrance Door facing lobby (-X)
+    addBox(floor1Group, -3.42, 2.30, 1.85 + rCurve, -3.38, H1, 4.2, MAT.glassClear, false);
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Kính Phòng Tư Vấn T1',
+        x: -3.4, y: 0, z: 3.45, width: 1.1, height: 2.3, rotY: Math.PI / 2, hingeSide: 1, openAngle: -Math.PI * 0.45, sign: 'TƯ VẤN NHA KHOA'
+    }, MAT);
+
+    // Divider wall at X = 0.0
+    addBox(floor1Group, -0.08, 0, 1.85, 0.08, H1, 5.15, MAT.wallWhite);
+    // Fluted Cream Wall + TV + Marble Panel + Smile Portrait on Z = +5.10 wall (P06, P07)
+    addBox(floor1Group, -3.3, 0, 5.06, -0.1, H1, 5.14, MAT.flutedCream);
+    addBeveledBox(floor1Group, -1.7, 0.905, 5.02, 1.85, 1.15, 0.04, 0.04, MAT.marbleWhite, 0.01);
+    addBox(floor1Group, -2.30, 1.12, 4.98, -1.10, 1.85, 5.01, MAT.tvGlossBlack);
+    // Framed portrait of smiling model (P06)
+    const p1Mat = MAT.makePortraitMat('#e8dfd6', '#5a4332');
+    const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.85, 0.03), p1Mat);
+    p1.position.set(-2.95, 1.60, 5.04);
+    floor1Group.add(p1);
+    // Lit Bookcase Credenza on X = -0.15 dividing wall (P06, P07)
+    buildLitBookcaseCredenza(floor1Group, -0.25, 0, 3.5, -Math.PI / 2, 2.8, MAT);
+    addWallAC(floor1Group, -0.22, 2.65, 3.5, -Math.PI / 2, MAT);
+    addCCTVDome(floor1Group, -0.22, 2.95, 4.95, MAT);
+    // Consultation Desk Set (P06-P08)
+    buildConsultationDeskSet(floor1Group, -1.65, 0, 3.5, Math.PI, MAT);
+
+    // =========================================================================
+    // ZONE 3: PHÒNG KHÁM TỔNG QUÁT T1 (X: -3.4 to +5.0, Z: -5.15 to -0.95, P08-P13)
+    // =========================================================================
+    // Curved-Corner Glass Partition from lobby (P01, P08, P13)
+    addCurvedGlassWall(floor1Group, -3.4 + rCurve, 0, -0.95 - rCurve, rCurve, H1, Math.PI * 0.5, Math.PI, MAT);
+    addStraightGlassWall(floor1Group, -3.4 + rCurve, 0, -0.95, 0.0, 0, -0.95, MAT, false);
+    addStraightGlassWall(floor1Group, -3.4, 0, -5.15, -3.4, H1, -3.2, MAT, true);
+    addBox(floor1Group, -3.42, 2.30, -3.2, -3.38, H1, -0.95 - rCurve, MAT.glassClear, false);
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Kính Phòng Khám T1',
+        x: -3.4, y: 0, z: -2.45, width: 1.05, height: 2.3, rotY: Math.PI / 2, hingeSide: -1, openAngle: Math.PI * 0.45
+    }, MAT);
+
+    // Sculpted Wave Relief Wall along Z = -0.95 (X: 0.0 to 5.0, P12, P13)
+    buildWaveFeatureWall(floor1Group, 2.5, 0, -0.95, 4.9, H1, Math.PI, MAT);
+    // Blue Hygiene Poster + Split AC on Clinic T1
+    addBox(floor1Group, 1.4, 1.4, -0.88, 1.9, 2.0, -0.86, MAT.blueChart, false);
+    addWallAC(floor1Group, 1.6, 2.65, -1.06, Math.PI, MAT);
+
+    // Left Zone of Clinic T1: Doctor Consultation Desk (X: -1.7, Z: -3.1, P09, P10)
+    buildConsultationDeskSet(floor1Group, -1.65, 0, -3.15, Math.PI, MAT);
+
+    // Half-Height Island Sink & Monitor Cabinet Dividing Desk from Dental Chair (X = 0.0, P01, P10, P11)
+    addBox(floor1Group, -0.35, 0, -4.65, 0.35, 0.92, -2.05, MAT.whiteWood);
+    addBox(floor1Group, -0.38, 0.92, -4.68, 0.38, 0.97, -2.02, MAT.marbleWhite);
+    addCyl(floor1Group, 0.0, 0.97, -3.0, 0.18, 0.16, 0.04, MAT.dentalWhite, 16, false); // Sink
+    addCyl(floor1Group, -0.14, 0.97, -3.0, 0.014, 0.014, 0.22, MAT.chrome, 10, false); // Faucet
+    // Back-to-back monitors on island
+    [-0.12, 0.12].forEach(mx => addBox(floor1Group, mx - 0.01, 1.0, -4.15, mx + 0.01, 1.34, -3.65, MAT.screenMacOS));
+    addBox(floor1Group, -0.18, 1.35, -4.92, 0.18, 2.05, -4.88, MAT.blueChart, false);
+
+    // Right Zone of Clinic T1: Sculpted Dental Unit + TV on Window (X: +2.6, Z: -3.2, P10, P11, P12)
+    buildSculptedDentalUnit(floor1Group, 2.65, 0, -3.15, -Math.PI / 2, MAT);
+    addBeveledBox(floor1Group, 2.65, 1.57, -4.88, 0.95, 0.56, 0.03, 0.02, MAT.marbleBlack, 0.005);
+    addBox(floor1Group, 2.20, 1.59, -4.86, 3.10, 2.11, -4.855, MAT.tvGlossBlack, false);
+    buildPottedPlant(floor1Group, 0.65, 0, -4.75, 1.0, MAT);
+    buildPottedPlant(floor1Group, 4.45, 0, -4.75, 1.0, MAT);
+
+    // =========================================================================
+    // ZONE 4: PHÒNG HỌP & BAN GIÁM ĐỐC T1 (X: 5.0 to 10.0, Z: -5.15 to -0.95, P14, P15)
+    // =========================================================================
+    // Dividing Wall at X = +5.0 with Central Glass Door flanked by 2 Lit Bookcases (P14)
+    addBox(floor1Group, 4.92, 0, -5.15, 5.08, H1, -3.55, MAT.wallWhite);
+    addBox(floor1Group, 4.92, 0, -2.55, 5.08, H1, -0.95, MAT.wallWhite);
+    addBox(floor1Group, 4.92, 2.30, -3.55, 5.08, H1, -2.55, MAT.wallWhite);
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'dark-fluted', mode: 'swing', name: 'Cửa Phòng Họp T1',
+        x: 5.0, y: 0, z: -3.05, width: 1.0, height: 2.3, rotY: Math.PI / 2, hingeSide: -1, openAngle: Math.PI * 0.48
+    }, MAT);
+    // 2 Tall Lit Shelving Cabinets flanking door inside Meeting Room (P14)
+    buildLitBookcaseCredenza(floor1Group, 5.25, 0, -4.35, Math.PI / 2, 1.45, MAT);
+    buildLitBookcaseCredenza(floor1Group, 5.25, 0, -1.75, Math.PI / 2, 1.45, MAT);
+    // Bottom Corridor Wall of Meeting Room (Z = -0.95)
+    addBox(floor1Group, 5.0, 0, -1.03, 10.0, H1, -0.87, MAT.wallWhite);
+
+    // Conference Table + 6 Chairs + Executive Desk + Projector + Dark Wood Slat TV Wall (P14, P15)
+    buildConferenceSet(floor1Group, 6.9, 0, -3.05, MAT);
+    // Executive wood desk perpendicular at head of table (X = 8.45)
+    addBeveledBox(floor1Group, 8.45, 0.72, -3.05, 0.65, 0.05, 1.55, 0.05, MAT.darkWalnut, 0.01);
+    addBox(floor1Group, 8.20, 0, -3.72, 8.70, 0.72, -2.38, MAT.darkWalnut);
+    buildOfficeSwivelChair(floor1Group, 9.05, 0, -3.05, -Math.PI / 2, MAT.marbleBlack, MAT);
+    // Dark Fluted Walnut Rear Wall (X = 9.82) + Projection Screen + AC (P15)
+    addBox(floor1Group, 9.80, 0, -5.05, 9.86, H1, -1.0, MAT.flutedWalnut);
+    addBox(floor1Group, 9.76, 1.05, -3.85, 9.79, 2.15, -2.25, MAT.tvGlossBlack);
+    addWallAC(floor1Group, 9.68, 2.65, -3.05, -Math.PI / 2, MAT);
+    // Ceiling Projector hanging at X=6.0, Z=-3.05 (P14, P15)
+    addCyl(floor1Group, 5.85, H1 - 0.55, -3.05, 0.02, 0.02, 0.55, MAT.marbleBlack, 8, false);
+    addBeveledBox(floor1Group, 5.85, H1 - 0.58, -3.05, 0.32, 0.10, 0.28, 0.03, MAT.marbleBlack, 0.005);
+
+    // =========================================================================
+    // ZONE 5: HÀNH LANG VÒM CUNG, CẦU THANG, TỦ GIÀY & CT X-QUANG (P16 - P20)
+    // =========================================================================
+    // Cross-wall at X = 0.0 with Arched Portal Doorway into Stair Hall (Z: -0.95 to +0.85, P16)
+    addBox(floor1Group, -0.08, 0, 0.85, 0.08, H1, 1.85, MAT.wallWhite);
+    addBox(floor1Group, -0.08, 2.40, -0.95, 0.08, H1, 0.85, MAT.wallWhite);
+    // Smooth arch curves at top corners of portal (P16)
+    addArchWallNiche(floor1Group, 0.0, 2.05, -0.05, 1.80, 0.35, 0.16, Math.PI / 2, MAT.wallWhite, null, MAT);
+
+    // Divider between Stair Hall & Locker Area (Z = +0.85, X: 0.0 to 2.2)
+    addBox(floor1Group, 0.0, 0, 0.78, 2.15, H1, 0.92, MAT.wallWhite);
+    // Teal Fish-Scale Tile Wall + Floating Sink + Backlit Mirror under Stairs (X: 0.8..2.2, Z: 0.92, P16)
+    addBox(floor1Group, 0.65, 0, 0.93, 2.05, 2.6, 0.96, MAT.fishScale);
+    buildVanityCabinet(floor1Group, 1.35, 0, 1.24, 0, 0.85, 'wide-oval', MAT);
+
+    // Locker / Shoe Cubby Unit (P17: X = 0.1..2.1, Z = 2.0..5.1)
+    buildCubbyLockerUnit(floor1Group, 1.95, 0, 3.4, -Math.PI / 2, MAT);
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'dark-fluted', mode: 'swing', name: 'Cửa Kho Tủ Giày T1',
+        x: 0.0, y: 0, z: 1.35, width: 0.82, height: 2.2, rotY: Math.PI / 2, hingeSide: 1, openAngle: -Math.PI * 0.45
+    }, MAT);
+
+    // Main Marble Staircase T1 -> T2 + Vertical White Rods (X: 2.3 to 4.7, Z: 4.95 down to 1.0, P16)
+    buildStaircase(floor1Group, 2.35, 4.75, 4.85, 1.05, 0.0, 3.4, MAT);
+    addBox(floor1Group, 4.82, 0, 0.85, 4.98, H1, 5.15, MAT.wallWhite); // Wall right of stairs
+
+    // X-Ray Corridor & Lead Doors (X: 5.0 to 10.0, Z: -0.95 to +1.05, P18)
+    addBox(floor1Group, 5.0, 0, 0.98, 6.2, H1, 1.12, MAT.wallWhite);
+    addBox(floor1Group, 7.2, 0, 0.98, 9.85, H1, 1.12, MAT.wallWhite);
+    addBox(floor1Group, 6.2, 2.30, 0.98, 7.2, H1, 1.12, MAT.wallWhite);
+
+    // Dark doors in X-Ray corridor + Stainless Lead Sliding Door "X - QUANG" + TV & Console (P18)
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'dark-fluted', mode: 'swing', name: 'Cửa Phòng Kỹ Thuật T1',
+        x: 5.55, y: 0, z: 1.05, width: 0.78, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45, sign: 'KỸ THUẬT'
+    }, MAT);
+    addArchitecturalDoor(floor1Group, interactiveDoors, {
+        style: 'lead-sliding', mode: 'sliding', name: 'Cửa Bọc Chì X-Quang CT',
+        x: 6.70, y: 0, z: 1.05, width: 1.02, height: 2.30, rotY: 0, slideDist: 0.98, sign: 'X - QUANG'
+    }, MAT);
+    // Wall TV + Floating Console Shelf outside X-Quang door (X = 8.15, Z = 0.96, P18)
+    addBox(floor1Group, 7.65, 1.15, 0.93, 8.65, 1.75, 0.97, MAT.tvGlossBlack);
+    addBeveledBox(floor1Group, 8.15, 0.82, 0.82, 1.05, 0.14, 0.28, 0.03, MAT.whiteWood, 0.008);
+
+    // Phòng CT Cone Beam (X: 5.0 to 9.1, Z: 1.1 to 5.15, P19, P20)
+    addBox(floor1Group, 9.0, 0, 1.1, 9.16, H1, 5.15, MAT.wallWhite); // Technical shaft wall
+    // Rounded-Corner World Map LED Feature Wall on Bottom Wall (Z = 5.08, P20)
+    addArchWallNiche(floor1Group, 7.05, 0.12, 5.06, 3.65, 2.55, 0.06, Math.PI, MAT.worldMapWall, MAT.coveWarm, MAT);
+    // CT Cone Beam Scanner (P20)
+    buildCTScanner(floor1Group, 7.05, 0, 4.15, 0, MAT);
+    // Glowing Logo Sign & Curved Console Table inside CT room (X = 8.95, P19, P20)
+    addBox(floor1Group, 8.94, 1.35, 2.25, 8.98, 2.05, 3.85, MAT.logoWall);
+    addBeveledBox(floor1Group, 8.72, 0.35, 3.05, 0.35, 0.72, 1.15, 0.08, MAT.wallCream, 0.01);
+    addBox(floor1Group, 8.96, 1.35, 1.45, 8.98, 1.95, 1.95, MAT.blueChart, false);
+
+    // =========================================================================
+    // TRẦN THẠCH CAO GIẬT CẤP & ĐÈN TRẦN TẦNG 1 (CEILINGS & COVES T1)
+    // =========================================================================
+    buildCofferedCeiling(ceilingGroupT1, -10.0, -5.2, 10.0, 5.2, 3.06, [
+        // 1. Backlit Sky Panel + Chandelier over Front Desk (P02)
+        { cx: -6.25, cz: 3.1, w: 4.2, d: 2.3, r: 0.55, isSky: true },
+        // 2. Waiting Lounge Curved Coffer with Warm Cove LED + White Ceiling Fan (P03, P04, P05)
+        { cx: -6.7, cz: -2.4, w: 4.8, d: 4.2, r: 0.65, centerDisc: false },
+        // 3. Consultation Room T1 Rounded Coffer (P06, P07)
+        { cx: -1.7, cz: 3.5, w: 2.5, d: 2.5, r: 0.45 },
+        // 4. Clinic T1 Desk Zone Rounded Coffer + Center Disc (P09, P10, P13)
+        { cx: -1.65, cz: -3.1, w: 2.4, d: 3.0, r: 0.55, centerDisc: true, centerDiscR: 0.24 },
+        // 5. Clinic T1 Dental Chair Zone Coffer + Center Disc (P10, P11)
+        { cx: 2.65, cz: -3.1, w: 3.2, d: 3.1, r: 0.60, centerDisc: true, centerDiscR: 0.26 },
+        // 6. Meeting Room Coffer + Center Disc (P14, P15)
+        { cx: 7.4, cz: -3.05, w: 3.6, d: 2.9, r: 0.55, centerDisc: true, centerDiscR: 0.26 },
+        // 7. CT Cone Beam Coffer (P19, P20)
+        { cx: 7.05, cz: 3.1, w: 3.0, d: 2.9, r: 0.55, centerDisc: true, centerDiscR: 0.22 }
+    ], [
+        [-9.2, -4.4], [-9.2, -2.0], [-9.2, 0.8], [-9.2, 3.8],
+        [-4.0, -4.4], [-4.0, 0.6], [-4.0, 4.4],
+        [-2.8, 2.3], [-0.6, 2.3], [-2.8, 4.7], [-0.6, 4.7],
+        [0.8, -4.7], [4.3, -4.7], [0.8, -1.5], [4.3, -1.5],
+        [5.6, -4.6], [9.2, -4.6], [5.6, -1.4], [9.2, -1.4],
+        [1.5, 0.0], [3.5, 0.0], [5.5, 0.0], [7.8, 0.0],
+        [5.5, 1.6], [8.5, 1.6], [5.5, 4.6], [8.5, 4.6]
+    ], MAT);
+
+    // Add Cloud Chandelier & 3-Blade White Ceiling Fan inside Sảnh Coffers!
+    buildCloudChandelier(ceilingGroupT1, -6.25, 3.15, 3.1, MAT);
+    buildCeilingFan(ceilingGroupT1, rotatingFans, -6.7, 3.20, -2.4, MAT);
+}
+
+
+// ============================================================================
+// MODULE 5: FLOOR 2 COMPLETE ARCHITECTURAL SCENE (P21 - P46 EXACT BLUEPRINT)
+// Metric Blueprint: X in [-10.0 Front .. +10.0 Rear], Z in [-5.3 Top .. +5.3 Bottom]
+// ============================================================================
+
+function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatingFans, MAT) {
+    const Y2 = 3.4;
+    const H2 = 3.1;
+
+    // 1. L-Shaped Exterior Terracotta Balcony with Curved Corner & Ornate Lattice Railing (P21)
+    const balcOuter = roundedRectShape(21.4, 11.4, 1.0);
+    const balcInner = new THREE.Path();
+    balcInner.moveTo(-10.0, -5.3);
+    balcInner.lineTo(10.0, -5.3);
+    balcInner.lineTo(10.0, 5.3);
+    balcInner.lineTo(-10.0, 5.3);
+    balcInner.closePath();
+    balcOuter.holes.push(balcInner);
+    const balcG = new THREE.ExtrudeGeometry(balcOuter, { depth: 0.16, bevelEnabled: false, curveSegments: 16 });
+    balcG.rotateX(-Math.PI / 2);
+    const balcDeck = new THREE.Mesh(balcG, MAT.terracotta);
+    balcDeck.position.set(-0.35, Y2 - 0.16, -0.35);
+    balcDeck.receiveShadow = true;
+    floor2Group.add(balcDeck);
+
+    // Ornate Balcony Guardrail along Left (-11.0) & Top (-6.0)
+    addBox(floor2Group, -11.0, Y2 + 0.92, -5.8, -10.92, Y2 + 0.98, 5.3, MAT.gold, false);
+    addBox(floor2Group, -10.8, Y2 + 0.92, -6.0, 10.0, Y2 + 0.98, -5.92, MAT.gold, false);
+    for (let rx = -10.5; rx <= 9.8; rx += 0.65) {
+        addBox(floor2Group, rx - 0.02, Y2, -6.0, rx + 0.02, Y2 + 0.95, -5.94, MAT.whiteWood, false);
+    }
+    for (let rz = -5.5; rz <= 5.0; rz += 0.65) {
+        addBox(floor2Group, -11.0, Y2, rz - 0.02, -10.94, Y2 + 0.95, rz + 0.02, MAT.whiteWood, false);
+    }
+
+    // 2. Floor 2 Slab WITH REAL STAIRWELL OPENING (X: 2.25..4.85, Z: 1.0..5.1)
+    const slabShape = new THREE.Shape();
+    slabShape.moveTo(-10.05, -5.35);
+    slabShape.lineTo(10.05, -5.35);
+    slabShape.lineTo(10.05, 5.35);
+    slabShape.lineTo(-10.05, 5.35);
+    slabShape.closePath();
+    // Stairwell hole
+    const hole = new THREE.Path();
+    hole.moveTo(2.25, -5.05); // Note Z flips with rotateX(-PI/2) -> +Z maps to -Y
+    hole.lineTo(4.85, -5.05);
+    hole.lineTo(4.85, -1.00);
+    hole.lineTo(2.25, -1.00);
+    hole.closePath();
+    slabShape.holes.push(hole);
+
+    const slabGeom = new THREE.ExtrudeGeometry(slabShape, { depth: 0.20, bevelEnabled: false });
+    slabGeom.rotateX(-Math.PI / 2);
+    const slabMesh = new THREE.Mesh(slabGeom, MAT.floorT2);
+    slabMesh.position.set(0, Y2 - 0.20, 0);
+    slabMesh.receiveShadow = true;
+    floor2Group.add(slabMesh);
+
+    // 3. Exterior Perimeter Walls T2 + Structural Columns
+    addBox(floor2Group, -10.05, Y2, -5.3, -9.85, Y2 + H2, 5.3, MAT.wallWhite);  // Left Front Wall
+    addBox(floor2Group, 9.85, Y2, -5.3, 10.05, Y2 + H2, 5.3, MAT.wallWhite);    // Right Rear Wall
+    addBox(floor2Group, -10.0, Y2, -5.35, 10.0, Y2 + H2, -5.15, MAT.wallWhite); // Top Exterior Wall
+    addBox(floor2Group, -10.0, Y2, 5.15, 10.0, Y2 + H2, 5.35, MAT.wallWhite);   // Bottom Exterior Wall
+
+    // Columns
+    [-10.0, -5.0, 0.0, 5.0, 10.0].forEach(cx => {
+        addBox(floor2Group, cx - 0.20, Y2, -5.35, cx + 0.20, Y2 + H2, -4.98, MAT.wallWhite);
+        addBox(floor2Group, cx - 0.20, Y2, 4.98, cx + 0.20, Y2 + H2, 5.35, MAT.wallWhite);
+    });
+
+    // =========================================================================
+    // CENTRAL CORRIDOR T2 (Z: -0.85 to +0.85) + WAITING BENCH & PORTRAITS (P34)
+    // =========================================================================
+    // Tufted Brown Leather Waiting Bench + 4 Beauty Smile Portraits on Top Corridor Wall (P34)
+    addBeveledBox(floor2Group, -8.25, Y2, -0.52, 1.95, 0.44, 0.56, 0.08, MAT.leatherTan, 0.025);
+    addBeveledBox(floor2Group, -8.72, Y2 + 0.40, -0.52, 0.92, 0.06, 0.50, 0.06, MAT.leatherDark, 0.015);
+    addBeveledBox(floor2Group, -7.78, Y2 + 0.40, -0.52, 0.92, 0.06, 0.50, 0.06, MAT.leatherDark, 0.015);
+    // 4 Framed Portraits opposite RHM glass wall (P33, P34)
+    for (let i = 0; i < 4; i++) {
+        const pMat = MAT.makePortraitMat(i % 2 === 0 ? '#ede6de' : '#e2ebe9', i % 2 === 0 ? '#5c4033' : '#2c3e50');
+        const pr = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.68, 0.025), pMat);
+        pr.position.set(-9.15 + i * 0.62, Y2 + 1.55, -0.82);
+        floor2Group.add(pr);
+    }
+
+    // Staircase Balustrade Guard along Corridor (X: 2.25..4.85, Z = +0.85)
+    for (let rx = 2.35; rx <= 4.75; rx += 0.18) {
+        addCyl(floor2Group, rx, Y2, 0.92, 0.012, 0.012, H2, MAT.dentalWhite, 8, false);
+    }
+
+    // =========================================================================
+    // TOP ROW (Z: -5.15 to -0.85): THẨM MỸ -> SPA -> STUDIO LOUNGE -> HẬU PHẪU
+    // =========================================================================
+    // Top Corridor Wall (Z = -0.85) with Door Openings:
+    // Doors at: X=-5.6 (Thẩm mỹ), X=-4.3 (Spa), X=0.7 (Studio), X=5.6 (Hậu phẫu)
+    addBox(floor2Group, -10.0, Y2, -0.92, -6.1, Y2 + H2, -0.78, MAT.wallWhite);
+    addBox(floor2Group, -5.1, Y2, -0.92, -4.8, Y2 + H2, -0.78, MAT.wallWhite); // Pillar between doors (P34)
+    addBox(floor2Group, -3.8, Y2, -0.92, 0.2, Y2 + H2, -0.78, MAT.wallWhite);
+    addBox(floor2Group, 1.2, Y2, -0.92, 5.1, Y2 + H2, -0.78, MAT.wallWhite);
+    addBox(floor2Group, 6.1, Y2, -0.92, 10.0, Y2 + H2, -0.78, MAT.wallWhite);
+    // Transoms above doors
+    [-5.6, -4.3, 0.7, 5.6].forEach(dx => addBox(floor2Group, dx - 0.5, Y2 + 2.25, -0.92, dx + 0.5, Y2 + H2, -0.78, MAT.wallWhite));
+
+    // Room Dividing Walls (Top Row)
+    addBox(floor2Group, -5.08, Y2, -5.15, -4.92, Y2 + H2, -0.92, MAT.wallWhite); // Thẩm Mỹ / Spa
+    addBox(floor2Group, -0.08, Y2, -5.15, 0.08, Y2 + H2, -0.92, MAT.wallWhite);  // Spa / Lounge
+    addBox(floor2Group, 4.92, Y2, -5.15, 5.08, Y2 + H2, -0.92, MAT.wallWhite);   // Lounge / Hậu Phẫu
+
+    // 1. PHÒNG PHẪU THUẬT THẨM MỸ (X: -10.0 to -5.0, Z: -5.15 to -0.85, P34-P37)
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'white-multipane', mode: 'swing', name: 'Cửa Phòng Phẫu Thuật Thẩm Mỹ',
+        x: -5.6, y: Y2, z: -0.85, width: 0.96, height: 2.25, rotY: 0, hingeSide: 1, openAngle: -Math.PI * 0.45, sign: 'PHẪU THUẬT THẨM MỸ'
+    }, MAT);
+    // 2 Sculpted Tan Aesthetic Reclining Chairs + Ring Lamps + Acrylic Carts (P35, P36, P37)
+    buildAestheticChair(floor2Group, -8.35, Y2, -2.95, 0, MAT);
+    buildAestheticChair(floor2Group, -6.55, Y2, -2.95, 0, MAT);
+    // White mobile hydro-facial beauty tower near top window (P36)
+    addBeveledBox(floor2Group, -7.45, Y2, -4.65, 0.36, 1.04, 0.38, 0.06, MAT.dentalWhite, 0.01);
+    // 4 Recessed Arch Niches along dividing wall X = -5.08 (P35, P37)
+    for (let i = 0; i < 4; i++) {
+        addArchWallNiche(floor2Group, -5.10, Y2 + 0.05, -4.45 + i * 0.92, 0.72, 2.35, 0.04, -Math.PI / 2, MAT.wallArchTan, null, MAT);
+    }
+    // White Drawer Vanity + Vessel Sink + Curved Peach Side Console + Wide Oval LED Mirror (P36, P37)
+    buildVanityCabinet(floor2Group, -7.8, Y2, -1.24, 0, 1.85, 'wide-oval', MAT);
+    addBeveledBox(floor2Group, -6.55, Y2, -1.16, 0.65, 0.80, 0.38, 0.16, MAT.wallPeach, 0.01);
+    // 3 White Casement Windows (2 on X=-10.0, 1 on Z=-5.15, P35, P36) + AC
+    addWhiteCasementWindow(floor2Group, -9.85, Y2 + 0.85, -3.95, 1.45, 1.25, Math.PI / 2, 2, MAT);
+    addWhiteCasementWindow(floor2Group, -9.85, Y2 + 0.85, -1.95, 1.25, 1.25, Math.PI / 2, 2, MAT);
+    addWhiteCasementWindow(floor2Group, -7.5, Y2 + 0.85, -5.14, 1.75, 1.25, 0, 2, MAT);
+    addWallAC(floor2Group, -9.76, Y2 + 2.55, -2.95, Math.PI / 2, MAT);
+
+    // 2. PHÒNG TRỊ LIỆU SPA & MASSAGE (X: -5.0 to 0.0, Z: -5.15 to -0.85, P34, P38-P40)
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'white-multipane', mode: 'swing', name: 'Cửa Phòng Trị Liệu - Spa',
+        x: -4.3, y: Y2, z: -0.85, width: 0.96, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45, sign: 'TRỊ LIỆU - SPA'
+    }, MAT);
+    // 2 Draped Spa Massage Beds with Runners, Bolsters, Tea Trays & Tufted Stools (P38-P40)
+    buildSpaBed(floor2Group, -3.35, Y2, -3.0, 0, MAT);
+    buildSpaBed(floor2Group, -1.65, Y2, -3.0, 0, MAT);
+    // Left Wall: Huge Pastel Lotus Floral Mural (X = -4.90, P39, P40)
+    const lotusPanel = new THREE.Mesh(new THREE.PlaneGeometry(4.1, 2.7), MAT.lotusMural);
+    lotusPanel.position.set(-4.90, Y2 + 1.45, -3.0);
+    lotusPanel.rotation.y = Math.PI / 2;
+    floor2Group.add(lotusPanel);
+    // Right Wall: Vertical Scalloped Wavy Fluted Relief Wall (X = -0.10, P38)
+    buildScallopedSpaWall(floor2Group, -0.10, Y2, -3.0, 4.05, H2 - 0.1, -Math.PI / 2, MAT);
+    // Vanity + Curved Peach Side Console + Wide Oval Mirror on Z = -1.24 (P38, P39)
+    buildVanityCabinet(floor2Group, -2.55, Y2, -1.24, 0, 1.75, 'wide-oval', MAT);
+    addBeveledBox(floor2Group, -1.35, Y2, -1.16, 0.65, 0.80, 0.38, 0.16, MAT.wallPeach, 0.01);
+    // Exterior Window + Glass Balcony Door + AC (Z = -5.15, P38, P40)
+    addWhiteCasementWindow(floor2Group, -2.2, Y2 + 0.85, -5.14, 1.75, 1.25, 0, 2, MAT);
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'white-multipane', mode: 'swing', name: 'Cửa Ban Công Phòng Spa',
+        x: -4.1, y: Y2, z: -5.15, width: 0.88, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45
+    }, MAT);
+    addWallAC(floor2Group, -2.5, Y2 + 2.55, -5.06, 0, MAT);
+
+    // 3. SẢNH LOUNGE & STUDIO MAKEUP (X: 0.0 to 5.0, Z: -5.15 to -0.85, P41-P43)
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'white-multipane', mode: 'swing', name: 'Cửa Phòng Studio / Lounge',
+        x: 0.7, y: Y2, z: -0.85, width: 0.96, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45, sign: 'STUDIO'
+    }, MAT);
+    // Floating Makeup Counter + 3 Circular Backlit Mirrors + 3 Plush Stools along X = 0.12 (P42)
+    addBeveledBox(floor2Group, 0.38, Y2 + 0.74, -3.0, 0.48, 0.12, 2.75, 0.04, MAT.whiteWood, 0.01);
+    [-3.85, -3.0, -2.15].forEach(mz => {
+        const ringM = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.30, 0.02, 24), MAT.chrome);
+        ringM.rotation.z = Math.PI / 2;
+        ringM.position.set(0.14, Y2 + 1.48, mz);
+        floor2Group.add(ringM);
+        const haloM = new THREE.Mesh(new THREE.TorusGeometry(0.31, 0.015, 8, 28), MAT.coveWarm);
+        haloM.rotation.y = Math.PI / 2;
+        haloM.position.set(0.13, Y2 + 1.48, mz);
+        floor2Group.add(haloM);
+        // Plush round ottoman stool
+        addCyl(floor2Group, 0.72, Y2, mz, 0.22, 0.21, 0.46, MAT.fabricCream, 20);
+    });
+    // Long Sofa + 2 Armchairs + Hex Coffee Table (P42, P43)
+    buildSofa(floor2Group, 4.05, Y2, -3.0, -Math.PI / 2, 2.25, MAT.fabricNavy, MAT);
+    buildBarrelArmchair(floor2Group, 2.65, Y2, -4.45, 0, MAT.fabricCream, MAT);
+    buildBarrelArmchair(floor2Group, 2.65, Y2, -1.55, Math.PI, MAT.fabricCream, MAT);
+    buildHexCoffeeTableSet(floor2Group, 2.65, Y2, -3.0, MAT);
+    // Right Wall: Fluted Cream Paneling + Glowing Ring Sign + 2 Brass Floor Lamps (X = 4.88, P43)
+    addBox(floor2Group, 4.86, Y2, -5.0, 4.92, Y2 + H2, -1.0, MAT.flutedCream);
+    const haloRing = new THREE.Mesh(new THREE.TorusGeometry(0.68, 0.022, 8, 36), MAT.coveWarm);
+    haloRing.rotation.y = Math.PI / 2;
+    haloRing.position.set(4.84, Y2 + 1.68, -3.0);
+    floor2Group.add(haloRing);
+    [-4.35, -1.65].forEach(lz => {
+        addCyl(floor2Group, 4.55, Y2, lz, 0.14, 0.14, 0.03, MAT.gold, 14);
+        addCyl(floor2Group, 4.55, Y2 + 0.03, lz, 0.018, 0.018, 1.42, MAT.gold, 8);
+        addCyl(floor2Group, 4.55, Y2 + 1.42, lz, 0.18, 0.18, 0.26, MAT.coveWarm, 16, false);
+    });
+    addWhiteCasementWindow(floor2Group, 2.8, Y2 + 0.85, -5.14, 1.75, 1.25, 0, 2, MAT);
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'white-multipane', mode: 'swing', name: 'Cửa Ban Công Studio Lounge',
+        x: 0.9, y: Y2, z: -5.15, width: 0.88, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45
+    }, MAT);
+    addWallAC(floor2Group, 2.8, Y2 + 2.55, -5.06, 0, MAT);
+
+    // 4. PHÒNG HẬU PHẪU (X: 5.0 to 10.0, Z: -5.15 to -0.85, P41, P44-P46)
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'white-multipane', mode: 'swing', name: 'Cửa Phòng Hậu Phẫu',
+        x: 5.6, y: Y2, z: -0.85, width: 0.96, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45, sign: 'HẬU PHẪU'
+    }, MAT);
+    // Entry alcove wall (X = 6.25, Z: -5.15..-2.3, P21)
+    addBox(floor2Group, 6.20, Y2, -5.15, 6.32, Y2 + H2, -2.35, MAT.wallWhite);
+    // Double Bed with Under-Bed Warm LED Glow (X = 8.15, Z = -3.95, P44)
+    addBox(floor2Group, 7.25, Y2 + 0.01, -4.90, 9.05, Y2 + 0.05, -2.95, MAT.coveWarm, false);
+    addBeveledBox(floor2Group, 8.15, Y2 + 0.05, -3.95, 1.85, 0.36, 2.02, 0.06, MAT.spaLinen, 0.015);
+    addBeveledBox(floor2Group, 8.15, Y2 + 0.40, -3.85, 1.72, 0.16, 1.88, 0.05, MAT.fabricCream, 0.02);
+    addBeveledBox(floor2Group, 7.72, Y2 + 0.56, -4.55, 0.65, 0.12, 0.38, 0.05, MAT.fabricCream, 0.015);
+    addBeveledBox(floor2Group, 8.58, Y2 + 0.56, -4.55, 0.65, 0.12, 0.38, 0.05, MAT.fabricCream, 0.015);
+    // Desk + Chair beside bed (X = 6.75, P44)
+    addBeveledBox(floor2Group, 6.75, Y2 + 0.72, -4.65, 0.85, 0.04, 0.52, 0.03, MAT.whiteWood, 0.008);
+    addBox(floor2Group, 6.35, Y2, -4.88, 6.40, Y2 + 0.72, -4.42, MAT.gold, false);
+    addBox(floor2Group, 7.10, Y2, -4.88, 7.15, Y2 + 0.72, -4.42, MAT.gold, false);
+    buildCafeGoldChair(floor2Group, 6.75, Y2, -4.15, Math.PI, MAT.fabricTaupe, MAT);
+    // 4-Door Wardrobe with 9 Lower Drawers (Z = -1.25, P45, P46)
+    addBox(floor2Group, 7.2, Y2, -1.55, 9.75, Y2 + 2.65, -0.95, MAT.whiteWood);
+    addBox(floor2Group, 7.2, Y2, -1.56, 9.75, Y2 + 0.78, -1.54, MAT.wallCream);
+    // 2 Triple White Casement Windows (P44, P45) + 6 Botanical Frames (P46) + AC
+    addWhiteCasementWindow(floor2Group, 8.15, Y2 + 0.85, -5.14, 1.95, 1.25, 0, 3, MAT);
+    addWhiteCasementWindow(floor2Group, 9.84, Y2 + 0.85, -3.15, 2.05, 1.25, -Math.PI / 2, 3, MAT);
+    addWallAC(floor2Group, 9.75, Y2 + 2.55, -3.15, -Math.PI / 2, MAT);
+
+    // =========================================================================
+    // BOTTOM ROW (Z: +0.85 to +5.15): RHM T2 -> WC -> VÔ TRÙNG -> STAIRS -> IMPLANT
+    // =========================================================================
+    // 1. PHÒNG RĂNG HÀM MẶT T2 (X: -10.0 to -5.0, Z: 0.85 to 5.15, P30-P33)
+    addStraightGlassWall(floor2Group, -10.0, Y2, 0.85, -6.5, Y2 + H2, 0.85, MAT, true);
+    addStraightGlassWall(floor2Group, -5.5, Y2, 0.85, -5.0, Y2 + H2, 0.85, MAT, true);
+    addBox(floor2Group, -6.5, Y2 + 2.30, 0.82, -5.5, Y2 + H2, 0.88, MAT.glassClear, false);
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Kính Phòng Răng Hàm Mặt T2',
+        x: -6.0, y: Y2, z: 0.85, width: 1.0, height: 2.30, rotY: 0, hingeSide: 1, openAngle: Math.PI * 0.45, sign: 'PHÒNG RĂNG HÀM MẶT'
+    }, MAT);
+
+    addBox(floor2Group, -5.08, Y2, 0.85, -4.92, Y2 + H2, 5.15, MAT.wallWhite); // Wall into WC
+    // Warm Peach Arched Feature Wall + HALO LED + Mounted TV on Z = 5.10 (P31, P32 - Bản 24-11!)
+    addArchWallNiche(floor2Group, -7.5, Y2, 5.06, 3.35, 2.55, 0.08, Math.PI, MAT.wallPeach, MAT.coveWarm, MAT);
+    addBeveledBox(floor2Group, -7.5, Y2 + 1.11, 4.98, 1.38, 0.78, 0.03, 0.02, MAT.marbleBlack, 0.004);
+    addBox(floor2Group, -8.15, Y2 + 1.15, 4.95, -6.85, Y2 + 1.85, 4.97, MAT.tvGlossBlack, false);
+    // Sculpted Dental Unit T2 facing -X window (P31, P32)
+    buildSculptedDentalUnit(floor2Group, -7.55, Y2, 3.05, Math.PI / 2, MAT);
+    // Vanity Cabinet + Tall Oval Mirror + Gold Vertical Strips on X = -5.12 (P32)
+    buildVanityCabinet(floor2Group, -5.38, Y2, 2.5, -Math.PI / 2, 2.25, 'tall-oval', MAT);
+    // White 4-pane window on X = -9.85 + Blue chart + AC (P31)
+    addWhiteCasementWindow(floor2Group, -9.85, Y2 + 0.85, 3.0, 1.95, 1.25, Math.PI / 2, 2, MAT);
+    addBox(floor2Group, -9.82, Y2 + 1.25, 4.15, -9.79, Y2 + 1.95, 4.65, MAT.blueChart, false);
+    addWallAC(floor2Group, -9.76, Y2 + 2.55, 3.0, Math.PI / 2, MAT);
+
+    // 2. CỤM WC NAM & NỮ T2 (X: -5.0 to -2.2, Z: 0.85 to 5.15, P30)
+    addBox(floor2Group, -5.0, Y2, 0.78, -4.45, Y2 + H2, 0.92, MAT.wallWhite);
+    addBox(floor2Group, -3.55, Y2, 0.78, -3.35, Y2 + H2, 0.92, MAT.wallWhite);
+    addBox(floor2Group, -2.45, Y2, 0.78, -2.1, Y2 + H2, 0.92, MAT.wallWhite);
+    addBox(floor2Group, -4.45, Y2 + 2.25, 0.78, -3.55, Y2 + H2, 0.92, MAT.wallWhite);
+    addBox(floor2Group, -3.35, Y2 + 2.25, 0.78, -2.45, Y2 + H2, 0.92, MAT.wallWhite);
+    addBox(floor2Group, -3.65, Y2, 0.9, -3.48, Y2 + H2, 5.15, MAT.wallWhite); // Partition between Nam & Nu
+    addBox(floor2Group, -2.25, Y2, 0.85, -2.10, Y2 + H2, 5.15, MAT.wallWhite); // Wall into Sterilization
+
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'dark-fluted', mode: 'swing', name: 'Cửa WC Nam T2',
+        x: -4.0, y: Y2, z: 0.85, width: 0.85, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.48, sign: 'WC NAM'
+    }, MAT);
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'dark-fluted', mode: 'swing', name: 'Cửa WC Nữ T2',
+        x: -2.9, y: Y2, z: 0.85, width: 0.85, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.48, sign: 'WC NỮ'
+    }, MAT);
+    // Ceramic Toilet Fixtures inside stalls
+    [-4.3, -2.9].forEach(wx => {
+        addBeveledBox(floor2Group, wx, Y2 + 0.42, 4.65, 0.38, 0.78, 0.22, 0.05, MAT.dentalWhite, 0.01);
+        addCyl(floor2Group, wx, Y2, 4.35, 0.18, 0.16, 0.42, MAT.dentalWhite, 16);
+    });
+
+    // 3. PHÒNG VÔ TRÙNG / XỬ LÝ DỤNG CỤ (X: -2.1 to +2.1, Z: 0.85 to 5.15, P27, P28, P29)
+    addStraightGlassWall(floor2Group, -2.1, Y2, 0.85, -0.95, Y2 + H2, 0.85, MAT, false);
+    addStraightGlassWall(floor2Group, 0.95, Y2, 0.85, 2.1, Y2 + H2, 0.85, MAT, false);
+    addBox(floor2Group, -0.95, Y2 + 2.30, 0.82, 0.95, Y2 + H2, 0.88, MAT.glassClear, false);
+    // Double Glass Doors + Hanging Signs ("XỬ LÝ DỤNG CỤ", "VÔ TRÙNG", "XỬ LÝ")
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Vô Trùng T2 (Trái)',
+        x: -0.48, y: Y2, z: 0.85, width: 0.92, height: 2.30, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45, sign: 'VÔ TRÙNG'
+    }, MAT);
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Xử Lý Dụng Cụ T2 (Phải)',
+        x: 0.48, y: Y2, z: 0.85, width: 0.92, height: 2.30, rotY: 0, hingeSide: 1, openAngle: -Math.PI * 0.45, sign: 'XỬ LÝ'
+    }, MAT);
+
+    // Center dividing glass partition between Vô Trùng & Xử Lý (X = 0.0, P27, P28)
+    addStraightGlassWall(floor2Group, 0.0, Y2, 0.9, 0.0, Y2 + H2, 5.1, MAT, false);
+    addBox(floor2Group, 2.02, Y2, 0.85, 2.18, Y2 + H2, 5.15, MAT.wallWhite); // Wall into stairs
+    // Left Bay (Vô Trùng): L-Counter + Upper Cabinets + Peach Glass Backsplash + Double Sink (P28)
+    addBox(floor2Group, -2.05, Y2, 4.45, -0.1, Y2 + 0.86, 5.12, MAT.whiteWood);
+    addBox(floor2Group, -2.05, Y2, 2.25, -1.42, Y2 + 0.86, 4.45, MAT.whiteWood);
+    addBox(floor2Group, -2.06, Y2 + 0.86, 4.42, -0.08, Y2 + 0.91, 5.13, MAT.marbleWhite);
+    addBox(floor2Group, -2.06, Y2 + 0.86, 2.22, -1.40, Y2 + 0.91, 4.42, MAT.marbleWhite);
+    // Peach glass backsplash & upper cabinets
+    addBox(floor2Group, -2.04, Y2 + 0.91, 5.05, -0.1, Y2 + 1.62, 5.10, MAT.wallPeach);
+    addBox(floor2Group, -2.04, Y2 + 1.62, 4.65, -0.1, Y2 + 2.75, 5.12, MAT.whiteWood);
+    addBox(floor2Group, -1.35, Y2 + 0.88, 4.55, -0.55, Y2 + 0.92, 4.95, MAT.marbleBlack, false); // Double black sink
+    addCyl(floor2Group, -0.95, Y2 + 0.92, 5.0, 0.016, 0.016, 0.30, MAT.chrome, 10, false);
+
+    // Right Bay (Xử Lý): Counter + Black 2-Door UV Cabinet Glowing Blue + White Autoclave (P27, P29)
+    addBox(floor2Group, 0.1, Y2, 4.45, 2.0, Y2 + 0.86, 5.12, MAT.whiteWood);
+    addBox(floor2Group, 1.38, Y2, 2.25, 2.0, Y2 + 0.86, 4.45, MAT.whiteWood);
+    addBox(floor2Group, 0.08, Y2 + 0.86, 4.42, 2.02, Y2 + 0.91, 5.13, MAT.marbleWhite);
+    addBox(floor2Group, 1.36, Y2 + 0.86, 2.22, 2.02, Y2 + 0.91, 4.42, MAT.marbleWhite);
+    addBox(floor2Group, 0.1, Y2 + 1.62, 4.65, 2.0, Y2 + 2.75, 5.12, MAT.whiteWood);
+    // Tall Black 2-Door UV Cabinet glowing blue inside (P27, P29)
+    addBox(floor2Group, 1.40, Y2, 1.35, 1.98, Y2 + 1.95, 2.15, MAT.marbleBlack);
+    addBox(floor2Group, 1.38, Y2 + 0.25, 1.42, 1.42, Y2 + 1.85, 2.08, MAT.uvBlue, false);
+    // White Tabletop Autoclave Class-B (P29)
+    addBeveledBox(floor2Group, 1.68, Y2 + 0.91, 2.75, 0.48, 0.44, 0.56, 0.04, MAT.dentalWhite, 0.01);
+
+    // 4. PHÒNG KHỬ KHUẨN & PHẪU THUẬT IMPLANT (X: 4.85 to 10.0, Z: 0.85 to 5.15, P22-P26)
+    // Scrub Vestibule "PHÒNG KHỬ KHUẨN" (X: 4.85..5.95, P22, P23)
+    addStraightGlassWall(floor2Group, 4.85, Y2, 0.85, 4.95, Y2 + H2, 0.85, MAT, false);
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Phòng Khử Khuẩn',
+        x: 5.4, y: Y2, z: 0.85, width: 0.92, height: 2.30, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45, sign: 'PHÒNG KHỬ KHUẨN'
+    }, MAT);
+    // Tall Scrub Locker + Black Basin Vanity inside Khử Khuẩn (P23)
+    addBox(floor2Group, 4.90, Y2, 3.25, 5.45, Y2 + 2.45, 5.10, MAT.wallCream);
+    buildVanityCabinet(floor2Group, 5.55, Y2, 2.45, Math.PI / 2, 0.95, 'tall-oval', MAT);
+
+    // Glass Partition separating Vestibule & Corridor from Implant Surgical Room (X = 5.95 & Z = 0.85, P22, P24, P25, P26)
+    addStraightGlassWall(floor2Group, 5.95, Y2, 0.85, 5.95, Y2 + H2, 2.0, MAT, true);
+    addStraightGlassWall(floor2Group, 5.95, Y2, 3.1, 5.95, Y2 + H2, 5.15, MAT, true);
+    addBox(floor2Group, 5.93, Y2 + 2.30, 2.0, 5.97, Y2 + H2, 3.1, MAT.glassClear, false);
+    addArchitecturalDoor(floor2Group, interactiveDoors, {
+        style: 'frameless-glass', mode: 'swing', name: 'Cửa Kính Phòng Mổ Implant',
+        x: 5.95, y: Y2, z: 2.55, width: 1.05, height: 2.30, rotY: Math.PI / 2, hingeSide: -1, openAngle: Math.PI * 0.45, sign: 'PHÒNG IMPLANT'
+    }, MAT);
+    addStraightGlassWall(floor2Group, 5.95, Y2, 0.85, 9.85, Y2 + H2, 0.85, MAT, true);
+
+    // Implant Feature Glass Wall + Vertical Glowing LED Bars + TV (Z = 5.05, P24, P25)
+    addBox(floor2Group, 6.2, Y2, 5.06, 9.8, Y2 + H2, 5.14, MAT.wallCream);
+    [6.6, 6.85, 8.95, 9.2].forEach(lx => addBox(floor2Group, lx - 0.02, Y2 + 0.05, 5.02, lx + 0.02, Y2 + 2.9, 5.04, MAT.coveWarm, false));
+    addBeveledBox(floor2Group, 7.9, Y2 + 1.09, 4.98, 1.38, 0.78, 0.03, 0.02, MAT.marbleBlack, 0.004);
+    addBox(floor2Group, 7.25, Y2 + 1.13, 4.95, 8.55, Y2 + 1.83, 4.97, MAT.tvGlossBlack, false);
+    const impSignMat = MAT.makeSignMat('IMPLANT - CÔNG NGHỆ HÀNG ĐẦU', 'rgba(0,0,0,0)', '#334155');
+    const impSign = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 0.40), impSignMat);
+    impSign.position.set(7.9, Y2 + 2.12, 5.0);
+    impSign.rotation.y = Math.PI;
+    floor2Group.add(impSign);
+
+    // Sculpted Surgical Dental Chair + Stainless Cart + Vanity + Red-Cross Cabinet (P24, P25, P26)
+    buildSculptedDentalUnit(floor2Group, 7.95, Y2, 2.95, -Math.PI / 2, MAT);
+    // Stainless rolling surgical tray cart
+    addCyl(floor2Group, 6.95, Y2, 2.65, 0.02, 0.02, 0.82, MAT.chrome, 8, false);
+    addBeveledBox(floor2Group, 6.95, Y2 + 0.82, 2.65, 0.65, 0.04, 0.44, 0.03, MAT.stainlessLead, 0.005);
+    // Vanity + Oval Mirror on X = 9.75 or Z = 5.0? Look at P24: vanity is on RIGHT wall (X = 6.2 or Z = 0.85? Actually X=6.2 left or Z=1.2 along glass)! Look at P24: along the dividing wall (Z=+1.15) is white vanity + oval mirror!
+    buildVanityCabinet(floor2Group, 9.55, Y2, 2.15, -Math.PI / 2, 1.55, 'tall-oval', MAT);
+    addWhiteCasementWindow(floor2Group, 9.84, Y2 + 0.85, 3.85, 1.65, 1.25, -Math.PI / 2, 2, MAT);
+    addWallAC(floor2Group, 9.75, Y2 + 2.55, 3.85, -Math.PI / 2, MAT);
+    // First-aid medical cabinet with Red Crosses (P26)
+    addBeveledBox(floor2Group, 9.76, Y2 + 1.35, 1.15, 0.14, 0.48, 0.56, 0.02, MAT.dentalWhite, 0.005);
+    addBox(floor2Group, 9.67, Y2 + 1.54, 1.12, 9.68, Y2 + 1.66, 1.18, MAT.redBeacon, false);
+
+    // Utility Wash Alcove right of Stair Landing (X: 8.3..9.85, Z: -0.85..+0.85, P21)
+    addStraightGlassWall(floor2Group, 8.2, Y2, -0.85, 8.2, Y2 + H2, 0.85, MAT, true);
+    addBeveledBox(floor2Group, 9.4, Y2, 0.25, 0.60, 0.84, 0.60, 0.04, MAT.dentalWhite, 0.01);
+    addBeveledBox(floor2Group, 9.4, Y2, -0.38, 0.60, 0.84, 0.60, 0.04, MAT.dentalWhite, 0.01);
+
+    // =========================================================================
+    // TRẦN THẠCH CAO GIẬT CẤP & ĐÈN TRẦN TẦNG 2 (CEILINGS & LIGHTS T2)
+    // =========================================================================
+    buildCofferedCeiling(ceilingGroupT2, -10.0, -5.2, 10.0, 5.2, Y2 + 2.94, [
+        // 1. RHM T2 Coffer + Stadium LED Cove (P31, P32)
+        { cx: -7.5, cz: 3.0, w: 3.2, d: 2.9, r: 0.55, cool: true, centerDisc: true, centerDiscR: 0.24 },
+        // 2. Implant Surgical Coffer + UV Purple Bar + Surgical Lamp (P24, P25)
+        { cx: 7.9, cz: 3.0, w: 2.8, d: 2.7, r: 0.55, cool: true },
+        // 3. Studio / Lounge Coffer with Ceiling Fan (P42, P43)
+        { cx: 2.5, cz: -3.0, w: 3.4, d: 2.9, r: 0.55 }
+    ], [
+        [-9.2, 1.4], [-5.8, 1.4], [-9.2, 4.6], [-5.8, 4.6],       // RHM T2 corners
+        [-4.2, 1.4], [-2.9, 1.4], [-1.2, 1.4], [1.2, 1.4],        // WC & Sterilization
+        [-1.2, 4.4], [1.2, 4.4], [6.4, 1.4], [9.4, 1.4],          // Sterilization & Implant
+        [6.4, 4.6], [9.4, 4.6],
+        [-9.2, -4.4], [-5.8, -4.4], [-9.2, -1.4], [-5.8, -1.4],   // Aesthetic
+        [-4.2, -4.4], [-0.8, -4.4], [-4.2, -1.4], [-0.8, -1.4],   // Spa
+        [0.8, -4.4], [4.2, -4.4], [0.8, -1.4], [4.2, -1.4],       // Lounge
+        [6.8, -4.4], [9.2, -4.4], [6.8, -1.4], [9.2, -1.4]        // Hậu Phẫu
+    ], MAT);
+
+    // Extra Ceiling Lighting Fixtures Specific to Floor 2 Renders:
+    // - Aesthetic Room Warm Cove Strip along dividing niches (P35)
+    addBox(ceilingGroupT2, -5.22, Y2 + 2.91, -4.8, -5.12, Y2 + 2.94, -1.2, MAT.coveWarm, false);
+    // - Spa Room Warm Cove Strips (P38, P39)
+    addBox(ceilingGroupT2, -4.85, Y2 + 2.91, -4.95, -0.15, Y2 + 2.94, -4.87, MAT.coveWarm, false);
+    addBox(ceilingGroupT2, -4.85, Y2 + 2.91, -1.05, -0.15, Y2 + 2.94, -0.97, MAT.coveWarm, false);
+    // - Studio Lounge 3-Blade White Ceiling Fan (P42, P43)
+    buildCeilingFan(ceilingGroupT2, rotatingFans, 2.5, Y2 + 3.08, -3.0, MAT);
+    // - Implant Room Purple UV Bar + 6-Petal Surgical Shadowless Lamp (P24, P25, P26)
+    addBox(ceilingGroupT2, 7.25, Y2 + 2.86, 1.45, 8.55, Y2 + 2.94, 1.65, MAT.uvPurple, false);
+    buildSurgicalCeilingLamp(ceilingGroupT2, 7.9, Y2 + 2.94, 2.95, MAT);
+}
+
+
+// ============================================================================
+// MODULE 6: APPLICATION CONTROLLER, SMART CEILING, DOOR ANIMATION & EXPORTERS
+// ============================================================================
+
+lucide.createIcons();
+
+const canvas = document.getElementById('canvas3d');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1120);
+scene.fog = new THREE.FogExp2(0x0b1120, 0.008);
+
+const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.2, 100);
+camera.position.set(-16.5, 16.5, 18.5);
+
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || Math.min(window.innerWidth, window.innerHeight) <= 768;
+
+const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+    powerPreference: 'high-performance',
+    preserveDrawingBuffer: true
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobileDevice ? 1.5 : 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false;
+renderer.shadowMap.needsUpdate = true;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.94;
+
+// Realistic PBR Environment Map (Reflections on Gold, Glass, Chrome, Marble)
+scene.environment = createArchitecturalEnv(renderer);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.maxPolarAngle = Math.PI / 2 + 0.08;
+controls.minDistance = 1.5;
+controls.maxDistance = 55;
+controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+controls.target.set(-1.0, 2.0, 0);
+
+// ----------------------------------------------------------------------------
+// BALANCED ARCHITECTURAL MULTI-FIXTURE LIGHTING RIG (Zero Single-Bulb Hotspot)
+// ----------------------------------------------------------------------------
+const ambientLight = new THREE.AmbientLight(0xfffaf2, 0.30);
+scene.add(ambientLight);
+
+const hemiLight = new THREE.HemisphereLight(0xeef6ff, 0xcabaa5, 0.32);
+scene.add(hemiLight);
+
+const shadowRes = isMobileDevice ? 1024 : 2048;
+const sunLight = new THREE.DirectionalLight(0xfff4e0, 0.90);
+sunLight.position.set(-18, 28, -16);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(shadowRes, shadowRes);
+sunLight.shadow.radius = 2.4;
+sunLight.shadow.camera.near = 1;
+sunLight.shadow.camera.far = 75;
+sunLight.shadow.camera.left = -14;
+sunLight.shadow.camera.right = 14;
+sunLight.shadow.camera.top = 12;
+sunLight.shadow.camera.bottom = -12;
+sunLight.shadow.bias = -0.0004;
+scene.add(sunLight);
+
+// Soft Cross-Corner Daylight & Warm Floor Bounce Fill (Even illumination across every bay!)
+const fillLight = new THREE.DirectionalLight(0xfff6ea, 0.24);
+fillLight.position.set(20, 22, 18);
+scene.add(fillLight);
+
+const bounceLight = new THREE.DirectionalLight(0xfdecd4, 0.12);
+bounceLight.position.set(0, -18, 0);
+scene.add(bounceLight);
+
+// ----------------------------------------------------------------------------
+// BUILD SCENES
+// ----------------------------------------------------------------------------
+const MAT = initMaterialsAndTextures();
+const floor1Group = new THREE.Group();
+const floor2Group = new THREE.Group();
+const ceilingGroupT1 = new THREE.Group();
+const ceilingGroupT2 = new THREE.Group();
+const interactiveDoors = [];
+const rotatingFans = [];
+
+scene.add(floor1Group);
+scene.add(floor2Group);
+floor1Group.add(ceilingGroupT1);
+floor2Group.add(ceilingGroupT2);
+
+buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatingFans, MAT);
+buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatingFans, MAT);
+
+// Ground grid + Sunlit City Skyline Backdrop visible outside all exterior windows
+const groundGrid = new THREE.GridHelper(48, 48, 0x1e293b, 0x141d2e);
+groundGrid.position.y = -0.22;
+scene.add(groundGrid);
+
+const skyDome = new THREE.Mesh(new THREE.CylinderGeometry(42, 42, 34, 36, 1, true), MAT.panoramaCity);
+skyDome.position.y = 11;
+scene.add(skyDome);
+
+// ----------------------------------------------------------------------------
+// ROOM PINS & METADATA
+// ----------------------------------------------------------------------------
+const Y2 = 3.4;
+const roomsData = [
+    { id: 1, floor: 1, key: 'reception', name: "Sảnh Đón Tiếp & Quầy Lễ Tân", pos: [-6.2, 1.4, 0.5], badge: "Tầng 1", desc: "Quầy lễ tân đá vân mây uốn cong với phù hiệu răng mạ vàng nổi bật, vách đá xuyên sáng logo Lào - Việt, sảnh chờ sofa & 2 bàn cafe chân trụ.", eq: ["Quầy lễ tân cong + Khiên logo răng phát sáng", "Vách đá xuyên sáng & 2 đèn tường pha lê vàng", "Ô trần mây trời + Đèn chùm pha lê đám mây", "Quạt trần 3 cánh + Khe LED hắt trần cong", "Sofa dài, bàn trà lục giác, 2 ghế barrel & 2 bàn cafe", "2 TV treo trần & Bàn thờ Thần Tài"] },
+    { id: 2, floor: 1, key: 'clinic_t1', name: "Phòng Khám Điều Trị Tổng Quát T1", pos: [1.8, 1.4, -3.1], badge: "Tầng 1", desc: "Phòng khám rộng chia 2 phân khu bằng đảo tủ lavabo & 2 màn hình iMac, vách kính uốn cong góc, vách trang trí sóng lượn 3D mạ vàng.", eq: ["Ghế nha khoa điêu khắc cao cấp màu da bò (4 tay khoan)", "Bàn làm việc bác sĩ + iMac + 2 ghế khách chân vàng", "Vách sóng 3D + Đèn trần LED bo cong 2 khoang", "Rèm cầu vồng mặt kính & Tivi treo tường"] },
+    { id: 3, floor: 1, key: 'consult', name: "Phòng Tư Vấn Bác Sĩ T1", pos: [-1.7, 1.4, 3.5], badge: "Tầng 1", desc: "Vách kính bo cong nẹp vàng sang trọng, bàn tư vấn bo góc, màn hình TV trên tấm đá marble, tủ kệ trưng bày hắt LED 4 tầng.", eq: ["Vách kính bo cong + Cửa kính tay nắm vàng", "Tủ kệ trưng bày hắt sáng LED 4 tầng", "Bàn tư vấn bo góc + Ghế xoay & 2 ghế khách", "Vách lam kem + TV + Tranh nụ cười thẩm mỹ"] },
+    { id: 4, floor: 1, key: 'meeting', name: "Phòng Họp & Giám Đốc T1", pos: [7.2, 1.4, -3.0], badge: "Tầng 1", desc: "Bàn họp lớn 6 ghế xoay da trắng, bàn giám đốc gỗ óc chó đặt ngang đầu bàn, vách lam gỗ sẫm gắn màn hình và máy chiếu treo trần.", eq: ["Bàn họp dài mặt trắng viền gỗ + 6 ghế xoay", "Bàn giám đốc gỗ óc chó + Ghế lãnh đạo đen", "2 Tủ sách hắt LED đối xứng 2 bên cửa", "Máy chiếu trần & Màn hình lớn"] },
+    { id: 5, floor: 1, key: 'xray', name: "Phòng Chụp X-Quang / CT Cone Beam", pos: [7.0, 1.4, 3.1], badge: "Tầng 1", desc: "Phòng chụp phim kỹ thuật số 3D cửa bọc chì có đèn cảnh báo bức xạ đỏ, vách LED bản đồ thế giới chấm sáng nổi bật.", eq: ["Máy chụp CT Cone Beam 3D toàn hàm", "Vách LED Bản đồ thế giới phát sáng", "Cửa trượt bọc chì có ô kính & biển phóng xạ", "Biển logo sáng & Bàn console cong"] },
+    { id: 6, floor: 2, key: 'rhm_t2', name: "Phòng Răng Hàm Mặt T2 (Mới 24-11)", pos: [-7.5, Y2 + 1.4, 3.0], badge: "Tầng 2", desc: "Cập nhật mới nhất bản 24/11: Hốc vòm màu kem ấm có đèn LED hào quang gắn TV (bỏ dòng chữ cũ), cửa sổ nan chia ô sơn trắng.", eq: ["Hốc vòm màu kem ấm có LED viền + TV", "Ghế nha khoa điêu khắc + 2 ghế bác sĩ/phụ tá", "Đèn trần dải LED bo cong hình chữ nhật", "Tủ lavabo 6 ngăn + Gương oval LED treo trục vàng"] },
+    { id: 7, floor: 2, key: 'steril', name: "Phòng Vô Trùng & Xử Lý Dụng Cụ T2", pos: [0.0, Y2 + 1.4, 3.0], badge: "Tầng 2", desc: "Chia 2 khoang Vô Trùng & Xử Lý qua vách kính, hệ tủ chữ U/L mặt đá, kính ốp bếp màu cam đào và thiết bị tiệt khuẩn chuyên sâu.", eq: ["Tủ sấy khử trùng UV 2 tầng phát sáng xanh dương", "Máy hấp sấy tiệt trùng Autoclave Class-B", "Bồn rửa siêu âm đôi màu đen & Vòi cổ ngỗng", "Cửa kính đôi mở quay tay nắm vàng"] },
+    { id: 8, floor: 2, key: 'implant', name: "Phòng Phẫu Thuật Cấy Ghép Implant T2", pos: [7.9, Y2 + 1.4, 3.0], badge: "Tầng 2", desc: "Tiếp cận qua phòng đệm Khử Khuẩn, vách kính phát sáng đường LED dọc và slogan Implant, trang bị đèn mổ hoa cúc 6 bóng.", eq: ["Đèn phẫu thuật mổ trần hoa cúc 6 bóng LED hội tụ", "Thanh đèn khử khuẩn tia UV trần màu tím", "Ghế mổ nha khoa + Xe đẩy dụng cụ inox", "Phòng đệm Khử Khuẩn có tủ đồ & bồn rửa"] },
+    { id: 9, floor: 2, key: 'aesthetic', name: "Phòng Phẫu Thuật Thẩm Mỹ T2", pos: [-7.5, Y2 + 1.4, -3.0], badge: "Tầng 2", desc: "2 ghế tiểu phẫu thẩm mỹ màu nâu da bò có đèn ring, 2 xe đẩy kính 3 tầng, 4 hốc vòm âm tường trang trí và gương oval rộng.", eq: ["2 Ghế thẩm mỹ điêu khắc + Đèn tiểu phẫu vòng tròn", "2 Xe đẩy kính trong suốt 3 tầng + Máy chăm sóc da", "4 Hốc vòm âm tường sơn nâu kem ấm", "Tủ 10 ngăn mặt đá + Bồn rửa tròn + Gương oval lớn"] },
+    { id: 10, floor: 2, key: 'spa', name: "Phòng Trị Liệu Spa & Massage T2", pos: [-2.5, Y2 + 1.4, -3.0], badge: "Tầng 2", desc: "2 giường spa phủ ga mềm có gối ống, khay trà gốm và tranh tường hoa sen pastel nghệ thuật kết hợp vách lam lượn sóng.", eq: ["2 Giường massage spa + Khay trà & Ghế đôn tròn", "Tranh tường nghệ thuật Hoa Sen pastel", "Vách lam gỗ lượn sóng trang trí", "Cửa ra ban công & Cửa sổ sơn trắng"] },
+    { id: 11, floor: 2, key: 'lounge', name: "Sảnh Lounge & Studio Makeup T2", pos: [2.5, Y2 + 1.4, -3.0], badge: "Tầng 2", desc: "Bàn trang điểm dài kẹp 3 gương tròn viền LED + 3 ghế đôn tròn, sofa chữ I, 2 armchair, đèn cây đồng và vòng tròn LED phát sáng.", eq: ["Bàn trang điểm + 3 Gương tròn LED + 3 Đôn tròn", "Sofa dài + 2 Armchair gối xanh navy + Bàn trà lục giác", "Vòng tròn sáng LED trên vách lam + 2 Đèn cây đứng", "Quạt trần 3 cánh & Khe hắt LED trần cong"] },
+    { id: 12, floor: 2, key: 'recovery', name: "Phòng Hậu Phẫu T2", pos: [7.8, Y2 + 1.4, -3.0], badge: "Tầng 2", desc: "Không gian nghỉ ngơi sau phẫu thuật yên tĩnh với giường đôi hắt LED gầm giường, tủ quần áo 4 cánh kịch trần và bàn nhỏ.", eq: ["Giường đôi bọc nỉ có đèn LED gầm hắt sàn", "Tủ quần áo 4 cánh + 9 ngăn kéo bên dưới", "Bàn trang điểm nhỏ + Ghế chân vàng", "2 Hệ cửa sổ 3 cánh sơn trắng"] }
+];
+
+const pinsGroup = new THREE.Group();
+scene.add(pinsGroup);
+const pinGeom = new THREE.SphereGeometry(0.22, 16, 16);
+const pinMatT1 = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.6 });
+const pinMatT2 = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.6 });
+
+roomsData.forEach(room => {
+    const pinMesh = new THREE.Mesh(pinGeom, room.floor === 1 ? pinMatT1 : pinMatT2);
+    pinMesh.position.set(room.pos[0], room.pos[1] + 0.9, room.pos[2]);
+    pinMesh.userData = room;
+    pinsGroup.add(pinMesh);
+
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.28, 0.34, 24), new THREE.MeshBasicMaterial({ color: room.floor === 1 ? 0x34d399 : 0xfbbf24, side: THREE.DoubleSide }));
+    ring.position.copy(pinMesh.position);
+    ring.rotation.x = Math.PI / 2;
+    pinsGroup.add(ring);
+});
+
+// ----------------------------------------------------------------------------
+// INTERACTIVE CAMERA FLY-TO, RAYCASTING & STATE CONTROLS
+// ----------------------------------------------------------------------------
+let camAnim = null;
+function flyCameraTo(targetVec, posVec, duration = 650) {
+    camAnim = {
+        startTime: performance.now(),
+        duration,
+        startTarget: controls.target.clone(),
+        endTarget: targetVec.clone(),
+        startPos: camera.position.clone(),
+        endPos: posVec.clone()
+    };
+}
+
+const roomCameraPresets = {
+    'reception': { floor: 1, target: [-6.0, 1.3, 1.5], cam: [-8.5, 2.3, -3.8] },
+    'clinic_t1': { floor: 1, target: [1.6, 1.2, -3.1], cam: [-2.4, 2.2, -1.8] },
+    'consult': { floor: 1, target: [-1.6, 1.3, 3.6], cam: [-3.1, 2.0, 2.2] },
+    'meeting': { floor: 1, target: [7.2, 1.2, -3.0], cam: [4.2, 2.2, -1.5] },
+    'xray': { floor: 1, target: [7.0, 1.3, 3.8], cam: [5.5, 2.0, 1.7] },
+    'rhm_t2': { floor: 2, target: [-7.6, Y2 + 1.2, 3.2], cam: [-6.8, Y2 + 2.0, 1.25] },
+    'steril': { floor: 2, target: [0.0, Y2 + 1.3, 3.4], cam: [-1.4, Y2 + 2.0, 0.2] },
+    'implant': { floor: 2, target: [7.9, Y2 + 1.3, 3.0], cam: [6.2, Y2 + 2.1, 1.4] },
+    'aesthetic': { floor: 2, target: [-7.5, Y2 + 1.2, -3.0], cam: [-5.4, Y2 + 2.1, -1.2] },
+    'spa': { floor: 2, target: [-2.5, Y2 + 1.2, -3.0], cam: [-4.4, Y2 + 2.1, -1.2] },
+    'lounge': { floor: 2, target: [2.5, Y2 + 1.2, -3.0], cam: [0.6, Y2 + 2.1, -1.2] },
+    'recovery': { floor: 2, target: [7.8, Y2 + 1.2, -3.2], cam: [5.6, Y2 + 2.0, -1.4] }
+};
+
+function gotoRoom(key) {
+    const p = roomCameraPresets[key];
+    if (!p) return;
+    setViewMode(p.floor === 1 ? 'f1' : 'f2');
+    flyCameraTo(new THREE.Vector3(...p.target), new THREE.Vector3(...p.cam), 700);
+    const meta = roomsData.find(r => r.key === key);
+    if (meta) showRoomModal(meta);
+    const sidebar = document.querySelector('.nav-sidebar');
+    if (sidebar && window.innerWidth <= 768) sidebar.classList.remove('mobile-open');
+}
+
+function toggleMobileSidebar() {
+    const sidebar = document.querySelector('.nav-sidebar');
+    if (sidebar) sidebar.classList.toggle('mobile-open');
+}
+
+// Raycaster for Door Clicking & Hover Feedback
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener('mousemove', (e) => {
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const allDoors = interactiveDoors.flatMap(d => d.meshes);
+    const hits = raycaster.intersectObjects(allDoors);
+    const pinHits = raycaster.intersectObjects(pinsGroup.children.filter(c => c.userData && c.userData.name));
+    canvas.style.cursor = (hits.length > 0 || pinHits.length > 0) ? 'pointer' : 'grab';
+});
+
+let downPt = { x: 0, y: 0 };
+window.addEventListener('pointerdown', (e) => { downPt = { x: e.clientX, y: e.clientY }; });
+window.addEventListener('pointerup', (e) => {
+    if (Math.hypot(e.clientX - downPt.x, e.clientY - downPt.y) > 5) return; // Ignore drags
+    if (e.target !== canvas) return;
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+
+    const doorHits = raycaster.intersectObjects(interactiveDoors.flatMap(d => d.meshes));
+    if (doorHits.length > 0) {
+        const doorIdx = doorHits[0].object.userData.doorIdx;
+        const door = interactiveDoors[doorIdx];
+        if (door) {
+            door.isOpen = !door.isOpen;
+            door.targetT = door.isOpen ? 1.0 : 0.0;
+            showToast(door.name + ': ' + (door.isOpen ? 'ĐÃ MỞ' : 'ĐÃ ĐÓNG'));
+            return;
+        }
+    }
+
+    const pinHits = raycaster.intersectObjects(pinsGroup.children.filter(c => c.userData && c.userData.name));
+    if (pinHits.length > 0) {
+        showRoomModal(pinHits[0].object.userData);
+    }
+});
+
+let selectedRoom = null;
+function showRoomModal(room) {
+    selectedRoom = room;
+    document.getElementById('modalTitle').innerText = room.name;
+    document.getElementById('modalBadge').innerText = room.badge;
+    document.getElementById('modalBadge').className = room.floor === 1 ? 'badge badge-f1' : 'badge badge-f2';
+    document.getElementById('modalIconBox').innerText = room.id;
+    document.getElementById('modalDesc').innerText = room.desc;
+    const ul = document.getElementById('modalEquipment');
+    ul.innerHTML = '';
+    room.eq.forEach(item => {
+        const li = document.createElement('li');
+        li.innerText = item;
+        ul.appendChild(li);
+    });
+    document.getElementById('roomModal').classList.add('open');
+}
+function closeModal() { document.getElementById('roomModal').classList.remove('open'); }
+function focusSelectedRoom() { if (selectedRoom && selectedRoom.key) gotoRoom(selectedRoom.key); }
+
+// Ceiling Display Mode: 'smart' (Auto-show when looking inside/up, hide when bird's eye) | 'show' | 'hide'
+let ceilingMode = 'smart';
+function cycleCeilingMode() {
+    if (ceilingMode === 'smart') ceilingMode = 'show';
+    else if (ceilingMode === 'show') ceilingMode = 'hide';
+    else ceilingMode = 'smart';
+
+    const label = ceilingMode === 'smart' ? 'Trần Tự Động' : (ceilingMode === 'show' ? 'Luôn Hiện Trần' : 'Luôn Ẩn Trần');
+    document.getElementById('txt-ceiling').innerText = label;
+    showToast('Chế độ trần: ' + label);
+}
+
+let currentView = 'both';
+let isExploded = false;
+function setViewMode(mode) {
+    currentView = mode;
+    ['both', 'f1', 'f2'].forEach(m => {
+        document.getElementById('btn-' + m).classList.toggle('active', m === mode);
+    });
+    if (mode === 'both') {
+        floor1Group.visible = true; floor2Group.visible = true;
+        pinsGroup.children.forEach(p => p.visible = showPins);
+        floor2Group.position.y = isExploded ? 4.8 : 0;
+    } else if (mode === 'f1') {
+        floor1Group.visible = true; floor2Group.visible = false;
+        pinsGroup.children.forEach(p => { if (p.userData) p.visible = showPins && (p.userData.floor === 1); });
+    } else if (mode === 'f2') {
+        floor1Group.visible = false; floor2Group.visible = true; floor2Group.position.y = 0;
+        pinsGroup.children.forEach(p => { if (p.userData) p.visible = showPins && (p.userData.floor === 2); });
+    }
+    renderer.shadowMap.needsUpdate = true;
+}
+
+function toggleExploded() {
+    isExploded = !isExploded;
+    setViewMode('both');
+    document.getElementById('btn-explode').classList.toggle('active', isExploded);
+    floor2Group.position.y = isExploded ? 4.8 : 0;
+    pinsGroup.children.forEach(p => {
+        if (p.userData && p.userData.floor === 2) {
+            p.position.y = p.userData.pos[1] + 0.9 + (isExploded ? 4.8 : 0);
+        }
+    });
+    renderer.shadowMap.needsUpdate = true;
+}
+
+let allDoorsOpen = false;
+function toggleAllDoors() {
+    allDoorsOpen = !allDoorsOpen;
+    interactiveDoors.forEach(d => { d.isOpen = allDoorsOpen; d.targetT = allDoorsOpen ? 1.0 : 0.0; });
+    document.getElementById('txt-doors').innerText = allDoorsOpen ? 'Đóng Tất Cả Cửa' : 'Mở Tất Cả Cửa';
+    showToast(allDoorsOpen ? 'Đã MỞ toàn bộ 17 cánh cửa' : 'Đã ĐÓNG toàn bộ cửa');
+}
+
+let isNightMode = false;
+function toggleLightingMode() {
+    isNightMode = !isNightMode;
+    document.getElementById('txt-light').innerText = isNightMode ? 'Ban Đêm (Bật Đèn)' : 'Ban Ngày';
+    if (isNightMode) {
+        scene.background.setHex(0x030712);
+        skyDome.visible = false;
+        ambientLight.intensity = 0.20;
+        hemiLight.intensity = 0.20;
+        sunLight.intensity = 0.20;
+        fillLight.intensity = 0.16;
+        bounceLight.intensity = 0.22;
+        MAT.logoWall.emissiveIntensity = 0.50;
+        MAT.skyPanel.emissiveIntensity = 0.65;
+        MAT.worldMapWall.emissiveIntensity = 0.32;
+        if (bloomPass) bloomPass.strength = 0.28;
+        showToast('Ban Đêm: Bật rực rỡ hệ trần LED hắt sáng & logo');
+    } else {
+        scene.background.setHex(0x0b1120);
+        skyDome.visible = true;
+        ambientLight.intensity = 0.30;
+        hemiLight.intensity = 0.32;
+        sunLight.intensity = 0.90;
+        fillLight.intensity = 0.24;
+        bounceLight.intensity = 0.12;
+        MAT.logoWall.emissiveIntensity = 0.20;
+        MAT.skyPanel.emissiveIntensity = 0.38;
+        MAT.worldMapWall.emissiveIntensity = 0.14;
+        if (bloomPass) bloomPass.strength = 0.14;
+        showToast('Ban Ngày: Ánh sáng kiến trúc đa hướng cân bằng');
+    }
+}
+
+let qualityMode = isMobileDevice ? 'smooth' : 'ultra';
+function syncQualityUI() {
+    const btn = document.getElementById('btn-quality');
+    const txt = document.getElementById('txt-quality');
+    if (btn) btn.classList.toggle('active', qualityMode === 'ultra');
+    if (txt) txt.innerText = qualityMode === 'ultra' ? 'Ultra AAA' : 'Mượt 60FPS';
+}
+
+function toggleQuality() {
+    qualityMode = qualityMode === 'ultra' ? 'smooth' : 'ultra';
+    if (qualityMode === 'ultra') ensureComposer();
+    const px = qualityMode === 'ultra' ? Math.min(window.devicePixelRatio || 1, 2) : Math.min(window.devicePixelRatio || 1, isMobileDevice ? 1.5 : 1);
+    renderer.setPixelRatio(px);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    if (composer) {
+        composer.setPixelRatio(px);
+        composer.setSize(window.innerWidth, window.innerHeight);
+    }
+    if (fxaaPass) {
+        fxaaPass.material.uniforms['resolution'].value.set(1 / (window.innerWidth * px), 1 / (window.innerHeight * px));
+    }
+    syncQualityUI();
+    showToast(qualityMode === 'ultra' ? 'Chế độ Ultra AAA: SSAO + Bloom + FXAA + Hi-DPI' : 'Chế độ Mượt: Tối ưu tốc độ khung hình');
+}
+
+let isFanOn = true;
+function toggleFan() {
+    isFanOn = !isFanOn;
+    document.getElementById('btn-fan').classList.toggle('active', isFanOn);
+}
+
+let showPins = true;
+function togglePins() {
+    showPins = !showPins;
+    document.getElementById('btn-pins').classList.toggle('active', showPins);
+    setViewMode(currentView);
+}
+
+function resetCamera() {
+    setViewMode('both');
+    flyCameraTo(new THREE.Vector3(-1.0, 2.0, 0), new THREE.Vector3(-16.5, 16.5, 18.5), 650);
+}
+function topDownView() {
+    flyCameraTo(new THREE.Vector3(0, 1.5, 0), new THREE.Vector3(0, 27.5, 0.01), 650);
+}
+
+let autoRotate = false;
+function toggleRotate() {
+    autoRotate = !autoRotate;
+    controls.autoRotate = autoRotate;
+    controls.autoRotateSpeed = 1.0;
+    document.getElementById('btn-rotate').classList.toggle('active', autoRotate);
+}
+
+function takeScreenshot() {
+    renderSceneFrame();
+    const a = document.createElement('a');
+    a.download = 'NhaKhoa_Pakse_24_11_UltraAAA.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+}
+
+function exportOBJ() {
+    const exporter = new THREE.OBJExporter();
+    const res1 = exporter.parse(floor1Group);
+    const res2 = exporter.parse(floor2Group);
+    const result = "# Nha Khoa Ha Noi - Lao (Pakse 24-11)\n" + res1 + "\n" + res2;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([result], { type: 'text/plain' }));
+    a.download = 'NhaKhoa_Pakse_24_11_ChiTiet.obj';
+    a.click();
+    showToast('Đã xuất xong file .OBJ chi tiết cao!');
+}
+
+function exportGLTF() {
+    const exporter = new THREE.GLTFExporter();
+    const expRoot = new THREE.Group();
+    expRoot.name = 'NhaKhoa_Pakse_24_11';
+    expRoot.add(floor1Group);
+    expRoot.add(floor2Group);
+    exporter.parse(expRoot, (res) => {
+        scene.add(floor1Group);
+        scene.add(floor2Group);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(res)], { type: 'application/json' }));
+        a.download = 'NhaKhoa_Pakse_24_11_ChiTiet.gltf';
+        a.click();
+        showToast('Đã xuất xong file .GLTF!');
+    }, { binary: false });
+}
+
+let toastTimer = null;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').innerText = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ----------------------------------------------------------------------------
+// AAA POST-PROCESSING PIPELINE (Lazy Init: Auto-Ultra on PC, Light on Mobile)
+// ----------------------------------------------------------------------------
+let composer = null, ssaoPass = null, bloomPass = null, acesGammaPass = null, fxaaPass = null;
+function ensureComposer() {
+    if (composer || typeof THREE.EffectComposer === 'undefined' || typeof THREE.SSAOPass === 'undefined') return;
+    const pxRatio = renderer.getPixelRatio();
+    const rtW = Math.floor(window.innerWidth * pxRatio);
+    const rtH = Math.floor(window.innerHeight * pxRatio);
+    composer = new THREE.EffectComposer(renderer);
+
+    ssaoPass = new THREE.SSAOPass(scene, camera, rtW, rtH);
+    ssaoPass.kernelRadius = 0.55;
+    ssaoPass.minDistance = 0.0005;
+    ssaoPass.maxDistance = 0.025;
+    // Skip transparent glass, light halos & contact decals during depth/normal AO pass
+    ssaoPass.overrideVisibility = function () {
+        const cache = this._visibilityCache;
+        this.scene.traverse(function (object) {
+            cache.set(object, object.visible);
+            if (object.isPoints || object.isLine) {
+                object.visible = false;
+            } else if (object.isMesh && object.material) {
+                const m = Array.isArray(object.material) ? object.material[0] : object.material;
+                if (m && (m.transparent || m.opacity < 0.99 || m === MAT.skyPanel)) {
+                    object.visible = false;
+                }
+            }
+        });
+    };
+    composer.addPass(ssaoPass);
+
+    bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(rtW, rtH), isNightMode ? 0.28 : 0.14, 0.38, 0.95);
+    composer.addPass(bloomPass);
+
+    const ACESSRGBShader = {
+        uniforms: {
+            tDiffuse: { value: null },
+            exposure: { value: renderer.toneMappingExposure }
+        },
+        vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+        fragmentShader: `
+            uniform sampler2D tDiffuse;
+            uniform float exposure;
+            varying vec2 vUv;
+            vec3 LinearToSRGB3(vec3 c) {
+                return mix(pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) * 1.055 - 0.055, c * 12.92, vec3(lessThanEqual(c, vec3(0.0031308))));
+            }
+            void main() {
+                vec4 tex = texture2D(tDiffuse, vUv);
+                vec3 col = tex.rgb * exposure * 0.62;
+                col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0.0, 1.0);
+                gl_FragColor = vec4(LinearToSRGB3(col), tex.a);
+            }
+        `
+    };
+    acesGammaPass = new THREE.ShaderPass(ACESSRGBShader);
+    composer.addPass(acesGammaPass);
+
+    fxaaPass = new THREE.ShaderPass(THREE.FXAAShader);
+    fxaaPass.material.uniforms['resolution'].value.set(1 / rtW, 1 / rtH);
+    composer.addPass(fxaaPass);
+}
+if (qualityMode === 'ultra') ensureComposer();
+syncQualityUI();
+
+// ----------------------------------------------------------------------------
+// MAIN RENDER LOOP (60FPS DOOR INTERPOLATION, SMART CEILING, CAMERA FLIGHT)
+// ----------------------------------------------------------------------------
+window._pauseRenderLoop = false;
+function renderSceneFrame() {
+    // Smart Ceiling Auto-Visibility: Hide ceiling from high bird's-eye view, show when inside/low angle!
+    if (ceilingMode === 'smart') {
+        ceilingGroupT1.visible = (camera.position.y < 3.6 && controls.target.y < 3.2) || (currentView === 'both' && !isExploded && camera.position.y < 3.4);
+        ceilingGroupT2.visible = (camera.position.y < 6.8 && camera.position.y > 3.1) || (camera.position.y < 6.6 && currentView === 'f2');
+    } else if (ceilingMode === 'show') {
+        ceilingGroupT1.visible = true;
+        ceilingGroupT2.visible = true;
+    } else {
+        ceilingGroupT1.visible = false;
+        ceilingGroupT2.visible = false;
+    }
+
+    // Auto-hide 3D room pins when camera is inside a room (prevents pins blocking interior views)
+    pinsGroup.visible = showPins && (camera.position.y > 7.5 || camera.position.distanceTo(controls.target) > 9.0);
+
+    // Smooth Door Hinge & Track Animations
+    let anyDoorMoved = false;
+    interactiveDoors.forEach(d => {
+        if (Math.abs(d.currentT - d.targetT) > 0.001) {
+            d.currentT += (d.targetT - d.currentT) * 0.14;
+            if (d.mode === 'swing') {
+                d.pivot.rotation.y = d.currentT * d.openAngle;
+            } else {
+                d.pivot.position.x = d.currentT * d.slideDist;
+            }
+            anyDoorMoved = true;
+        }
+    });
+    if (anyDoorMoved) renderer.shadowMap.needsUpdate = true;
+
+    // Fan Rotation
+    if (isFanOn) {
+        rotatingFans.forEach(f => f.rotation.y += 0.09);
+    }
+
+    if (qualityMode === 'ultra' && composer) {
+        composer.render();
+    } else {
+        renderer.render(scene, camera);
+    }
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    if (window._pauseRenderLoop) return;
+
+    // Smooth camera fly-to easing
+    if (camAnim) {
+        const p = Math.min(1, (performance.now() - camAnim.startTime) / camAnim.duration);
+        const ease = 1 - Math.pow(1 - p, 3);
+        controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, ease);
+        camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, ease);
+        if (p >= 1) camAnim = null;
+    }
+
+    controls.update();
+    renderSceneFrame();
+}
+requestAnimationFrame(animate);
+
+window.addEventListener('resize', () => {
+    const px = qualityMode === 'ultra' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setPixelRatio(px);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    if (composer) {
+        composer.setPixelRatio(px);
+        composer.setSize(window.innerWidth, window.innerHeight);
+    }
+    if (fxaaPass) {
+        fxaaPass.material.uniforms['resolution'].value.set(1 / (window.innerWidth * px), 1 / (window.innerHeight * px));
+    }
+});
+
+    </script>
+</body>
+</html>
