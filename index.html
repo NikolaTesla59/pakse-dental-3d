@@ -2855,12 +2855,12 @@ function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatin
 
     // Divider between Stair Hall & Locker Area (Z = +0.85, X: 0.0 to 2.2)
     addBox(floor1Group, 0.0, 0, 0.78, 2.15, H1, 0.92, MAT.wallWhite);
-    // Teal Fish-Scale Tile Wall + Floating Sink + Backlit Mirror under Stairs (X: 0.8..2.2, Z: 0.92, P16)
-    addBox(floor1Group, 0.65, 0, 0.93, 2.05, 2.6, 0.96, MAT.fishScale);
-    buildVanityCabinet(floor1Group, 1.35, 0, 1.24, 0, 0.85, 'wide-oval', MAT);
+    // Teal Fish-Scale Tile Wall + Floating Sink + Backlit Mirror Facing Open Stair Hall (-Z, P16!)
+    addBox(floor1Group, 0.65, 0, 0.74, 2.05, 2.6, 0.775, MAT.fishScale);
+    buildVanityCabinet(floor1Group, 1.35, 0, 0.48, Math.PI, 0.85, 'wide-oval', MAT);
 
-    // Locker / Shoe Cubby Unit (P17: X = 0.1..2.1, Z = 2.0..5.1)
-    buildCubbyLockerUnit(floor1Group, 1.95, 0, 3.4, -Math.PI / 2, MAT);
+    // Locker / Shoe Cubby Unit Facing -X into Locker Room (P17: X = 0.1..2.1, Z = 2.0..5.1)
+    buildCubbyLockerUnit(floor1Group, 1.95, 0, 3.4, Math.PI / 2, MAT);
     addArchitecturalDoor(floor1Group, interactiveDoors, {
         style: 'dark-fluted', mode: 'swing', name: 'Cửa Kho Tủ Giày T1',
         x: 0.0, y: 0, z: 1.35, width: 0.82, height: 2.2, rotY: Math.PI / 2, hingeSide: 1, openAngle: -Math.PI * 0.45
