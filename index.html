@@ -307,9 +307,9 @@ function initMaterialsAndTextures() {
         ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
         ctx.stroke();
 
-        // Characteristic dark-red diamond dot at center & outer corner intersections
+        // Characteristic deep crimson-terracotta diamond dot at center & outer corners (P02, P03)
         function diamond(cx, cy, r) {
-            ctx.fillStyle = '#8b2e2e';
+            ctx.fillStyle = '#9b2c27';
             ctx.beginPath();
             ctx.moveTo(cx, cy - r);
             ctx.lineTo(cx + r, cy);
@@ -318,15 +318,23 @@ function initMaterialsAndTextures() {
             ctx.closePath();
             ctx.fill();
         }
-        diamond(0, 0, 22); diamond(w, 0, 22); diamond(w, h, 22); diamond(0, h, 22);
-        diamond(w / 2, h / 2, 22);
+        diamond(0, 0, 24); diamond(w, 0, 24); diamond(w, h, 24); diamond(0, h, 24);
+        diamond(w / 2, h / 2, 24);
     }, 5, 2.6);
 
-    // 2. Floor T2: Warm creamy off-white porcelain tiles
+    // 2. Floor T2: Warm creamy off-white porcelain tiles with organic marble veins
     const texFloorT2 = makeCanvasTex(512, 512, (ctx, w, h) => {
-        ctx.fillStyle = '#f2efe9';
+        ctx.fillStyle = '#f2ede4';
         ctx.fillRect(0, 0, w, h);
-        ctx.strokeStyle = 'rgba(210, 202, 190, 0.65)';
+        ctx.strokeStyle = 'rgba(195, 182, 165, 0.28)';
+        ctx.lineWidth = 3.5;
+        for (let i = 0; i < 6; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * 95, 0);
+            ctx.bezierCurveTo(i * 95 + 45, 160, i * 95 - 35, 350, i * 95 + 20, 512);
+            ctx.stroke();
+        }
+        ctx.strokeStyle = 'rgba(205, 195, 182, 0.72)';
         ctx.lineWidth = 2;
         for (let i = 0; i <= 2; i++) {
             ctx.beginPath(); ctx.moveTo(i * 256, 0); ctx.lineTo(i * 256, h); ctx.stroke();
@@ -347,41 +355,49 @@ function initMaterialsAndTextures() {
         ctx.beginPath(); ctx.moveTo(128, 0); ctx.lineTo(128, h); ctx.moveTo(0, 128); ctx.lineTo(w, 128); ctx.stroke();
     }, 3, 3);
 
-    // 4. Teal Fish-Scale Tile Wall (Under Stairs P16)
+    // 4. Deep Iridescent Teal Fish-Scale Tile Wall (Under Stairs P16)
     const texFishScale = makeCanvasTex(512, 512, (ctx, w, h) => {
-        ctx.fillStyle = '#2d6e73';
+        ctx.fillStyle = '#1b5d63';
         ctx.fillRect(0, 0, w, h);
         const r = 32;
         for (let row = 0; row < 20; row++) {
             for (let col = -1; col < 10; col++) {
                 const cx = col * r * 2 + (row % 2) * r;
                 const cy = row * r * 0.85;
-                ctx.fillStyle = (row + col) % 3 === 0 ? '#3e8e94' : ((row + col) % 2 === 0 ? '#276166' : '#4fa3a8');
+                ctx.fillStyle = (row + col) % 3 === 0 ? '#2b7a82' : ((row + col) % 2 === 0 ? '#185459' : '#3a9198');
                 ctx.beginPath();
                 ctx.arc(cx, cy, r - 1.5, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = '#d4e2e3';
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#d7e3e3';
+                ctx.lineWidth = 1.6;
                 ctx.stroke();
             }
         }
     }, 1.5, 1.5);
 
-    // 5. Backlit Onyx Reception Logo Wall (P02)
+    // 5. Backlit Translucent Golden-Veined Onyx Reception Wall (P02)
     const texLogoWall = makeCanvasTex(1024, 512, (ctx, w, h) => {
         const grd = ctx.createLinearGradient(0, 0, w, h);
-        grd.addColorStop(0, '#f3ede3');
-        grd.addColorStop(0.35, '#fffdf9');
-        grd.addColorStop(0.65, '#f2e0c4');
-        grd.addColorStop(1, '#e7c694');
+        grd.addColorStop(0, '#f5efe6');
+        grd.addColorStop(0.32, '#fffcf6');
+        grd.addColorStop(0.68, '#ebd4b0');
+        grd.addColorStop(1, '#ddb67d');
         ctx.fillStyle = grd;
         ctx.fillRect(0, 0, w, h);
 
-        // Onyx cloud wash
-        ctx.fillStyle = 'rgba(130, 180, 185, 0.16)';
-        ctx.beginPath(); ctx.ellipse(420, 350, 260, 140, -0.2, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = 'rgba(215, 175, 110, 0.22)';
-        ctx.beginPath(); ctx.ellipse(760, 160, 220, 180, 0.3, 0, Math.PI * 2); ctx.fill();
+        // Rich translucent Onyx marble cloud washes & diagonal mineral veins
+        ctx.fillStyle = 'rgba(205, 155, 85, 0.25)';
+        ctx.beginPath(); ctx.ellipse(790, 220, 260, 210, 0.35, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(120, 175, 180, 0.16)';
+        ctx.beginPath(); ctx.ellipse(340, 390, 280, 140, -0.22, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(185, 136, 72, 0.34)';
+        ctx.lineWidth = 5;
+        for (let v = 0; v < 5; v++) {
+            ctx.beginPath();
+            ctx.moveTo(v * 210, 0);
+            ctx.bezierCurveTo(v * 210 + 90, 160, v * 210 - 60, 340, v * 210 + 130, 512);
+            ctx.stroke();
+        }
 
         // Rounded white illuminated sign board in center
         const bx = 252, by = 135, bw = 520, bh = 185, br = 24;
@@ -510,53 +526,52 @@ function initMaterialsAndTextures() {
             ctx.restore();
         }
         function drawRichLotus(cx, cy, sc) {
-            // Stems
-            ctx.strokeStyle = '#607d73'; ctx.lineWidth = 5 * sc;
-            ctx.beginPath(); ctx.moveTo(cx, cy + 160 * sc); ctx.quadraticCurveTo(cx - 12 * sc, cy + 80 * sc, cx, cy); ctx.stroke();
-            // Layered outer -> inner petals
+            ctx.strokeStyle = '#3c5e56'; ctx.lineWidth = 6 * sc;
+            ctx.beginPath(); ctx.moveTo(cx, cy + 165 * sc); ctx.quadraticCurveTo(cx - 12 * sc, cy + 80 * sc, cx, cy); ctx.stroke();
             const rings = [
-                { count: 9, spread: 1.9, len: 120, wid: 34, c0: '#b86852', c1: '#ecc0aa' },
-                { count: 7, spread: 1.45, len: 100, wid: 30, c0: '#cf7d65', c1: '#f9ded0' },
-                { count: 5, spread: 0.95, len: 82, wid: 24, c0: '#e29882', c1: '#fff9f5' }
+                { count: 9, spread: 1.95, len: 125, wid: 36, c0: '#b8533e', c1: '#f0af92' },
+                { count: 7, spread: 1.5, len: 104, wid: 32, c0: '#cf684e', c1: '#fbd0ba' },
+                { count: 5, spread: 0.98, len: 86, wid: 26, c0: '#e2886f', c1: '#fff6f0' }
             ];
             rings.forEach(ring => {
                 for (let i = 0; i < ring.count; i++) {
                     const a = -ring.spread / 2 + (i / (ring.count - 1)) * ring.spread;
                     ctx.save(); ctx.translate(cx, cy); ctx.rotate(a);
+                    ctx.shadowColor = 'rgba(90, 45, 35, 0.22)';
+                    ctx.shadowBlur = 8;
                     const pGrd = ctx.createLinearGradient(0, 0, 0, -ring.len * sc);
                     pGrd.addColorStop(0, ring.c0);
                     pGrd.addColorStop(0.55, ring.c1);
                     pGrd.addColorStop(1, '#ffffff');
                     ctx.fillStyle = pGrd;
-                    ctx.strokeStyle = 'rgba(170, 95, 78, 0.32)'; ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = 'rgba(155, 72, 55, 0.38)'; ctx.lineWidth = 1.6;
                     ctx.beginPath();
                     ctx.moveTo(0, 0);
                     ctx.bezierCurveTo(-ring.wid * sc, -ring.len * 0.4 * sc, -ring.wid * 0.65 * sc, -ring.len * 0.85 * sc, 0, -ring.len * sc);
                     ctx.bezierCurveTo(ring.wid * 0.65 * sc, -ring.len * 0.85 * sc, ring.wid * sc, -ring.len * 0.4 * sc, 0, 0);
-                    ctx.fill(); ctx.stroke();
+                    ctx.fill(); ctx.shadowBlur = 0; ctx.stroke();
                     ctx.restore();
                 }
             });
-            // Golden center pod
-            ctx.fillStyle = '#e6b85c';
-            ctx.beginPath(); ctx.ellipse(cx, cy - 12 * sc, 18 * sc, 10 * sc, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#e8b04a';
+            ctx.beginPath(); ctx.ellipse(cx, cy - 12 * sc, 20 * sc, 11 * sc, 0, 0, Math.PI * 2); ctx.fill();
         }
-        drawPad(180, 420, 125, 75, -0.2, '#4a6b65');
-        drawPad(490, 435, 165, 95, 0.12, '#3d5c56');
-        drawPad(810, 415, 130, 80, 0.25, '#587b74');
-        drawRichLotus(210, 320, 1.0);
-        drawRichLotus(510, 260, 1.38);
-        drawRichLotus(805, 305, 1.08);
+        drawPad(180, 420, 130, 78, -0.2, '#2d524c');
+        drawPad(490, 435, 175, 98, 0.12, '#23443f');
+        drawPad(810, 415, 135, 82, 0.25, '#356059');
+        drawRichLotus(210, 315, 1.05);
+        drawRichLotus(510, 255, 1.42);
+        drawRichLotus(805, 300, 1.12);
     });
 
-    // 9. Zebra Window Blinds (P03, P04, P09, P15)
+    // 9. Zebra Window Blinds (P03, P04, P09, P15 - richer warm mocha contrast)
     const texZebra = makeCanvasTex(256, 256, (ctx, w, h) => {
         ctx.clearRect(0, 0, w, h);
         for (let y = 0; y < h; y += 24) {
-            ctx.fillStyle = 'rgba(182, 165, 148, 0.88)';
-            ctx.fillRect(0, y, w, 13);
-            ctx.fillStyle = 'rgba(255, 252, 248, 0.25)';
-            ctx.fillRect(0, y + 13, w, 11);
+            ctx.fillStyle = 'rgba(152, 132, 112, 0.92)';
+            ctx.fillRect(0, y, w, 14);
+            ctx.fillStyle = 'rgba(255, 252, 248, 0.24)';
+            ctx.fillRect(0, y + 14, w, 10);
         }
     }, 1, 2);
 
@@ -795,14 +810,20 @@ function initMaterialsAndTextures() {
         ctx.fillRect(0, 0, w, h);
     });
 
-    // 12. Frosted Safety Privacy Strip on Glass Partitions
+    // 12. Geometric Frosted Diamond-Lattice Privacy Band on Glass Partitions (P03, P10, P24)
     const texGlassFrostBand = makeCanvasTex(512, 512, (ctx, w, h) => {
         ctx.clearRect(0, 0, w, h);
-        // Subtle translucent horizontal privacy stripe band in middle
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-        ctx.fillRect(0, 175, w, 145);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.fillRect(0, 155, w, 10);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.56)';
+        ctx.fillRect(0, 178, w, 142);
+        // Subtle geometric diamond trellis pattern inside frosted band
+        ctx.strokeStyle = 'rgba(210, 222, 232, 0.55)';
+        ctx.lineWidth = 2;
+        for (let d = -h; d < w + h; d += 32) {
+            ctx.beginPath(); ctx.moveTo(d, 178); ctx.lineTo(d + 142, 320); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(d + 142, 178); ctx.lineTo(d, 320); ctx.stroke();
+        }
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.38)';
+        ctx.fillRect(0, 158, w, 10);
         ctx.fillRect(0, 330, w, 10);
     });
 
@@ -842,33 +863,149 @@ function initMaterialsAndTextures() {
         });
     }
 
-    // 14. Framed Beauty Portrait Generator
+    // 14. Framed Beauty Portrait Generator (Refined studio portrait + slim gold/champagne frame)
     function makePortraitMat(bgHex, accentHex) {
         const tex = makeCanvasTex(256, 360, (ctx, w, h) => {
-            ctx.fillStyle = bgHex;
+            const bg = ctx.createLinearGradient(0, 0, 0, h);
+            bg.addColorStop(0, bgHex);
+            bg.addColorStop(1, '#ffffff');
+            ctx.fillStyle = bg;
             ctx.fillRect(0, 0, w, h);
-            // Soft portrait silhouette
-            ctx.fillStyle = '#ead2c3';
-            ctx.beginPath(); ctx.ellipse(128, 130, 52, 65, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(128, 300, 95, 90, 0, Math.PI, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = accentHex; // Hair / framing
-            ctx.beginPath(); ctx.arc(128, 118, 56, Math.PI, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ffffff'; // Bright smile
-            ctx.beginPath(); ctx.ellipse(128, 158, 18, 7, 0, 0, Math.PI); ctx.fill();
+            // Soft hair drape behind shoulders
+            ctx.fillStyle = accentHex;
+            ctx.beginPath(); ctx.ellipse(128, 138, 66, 92, 0, 0, Math.PI * 2); ctx.fill();
+            // Neck & shoulders
+            ctx.fillStyle = '#e5bea6';
+            ctx.fillRect(108, 185, 40, 48);
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.ellipse(128, 325, 102, 100, 0, Math.PI, Math.PI * 2); ctx.fill();
+            // Face
+            const skin = ctx.createRadialGradient(120, 120, 12, 128, 132, 65);
+            skin.addColorStop(0, '#fae3d4');
+            skin.addColorStop(1, '#e2b89f');
+            ctx.fillStyle = skin;
+            ctx.beginPath(); ctx.ellipse(128, 132, 48, 62, 0, 0, Math.PI * 2); ctx.fill();
+            // Bangs & hairline
+            ctx.fillStyle = accentHex;
+            ctx.beginPath(); ctx.arc(128, 114, 50, Math.PI, Math.PI * 2); ctx.fill();
+            // Subtle eyebrows & eyes
+            ctx.fillStyle = '#3b271c';
+            ctx.beginPath(); ctx.ellipse(110, 122, 6, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(146, 122, 6, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+            // Bright radiant smile
+            ctx.fillStyle = '#c85a62';
+            ctx.beginPath(); ctx.ellipse(128, 160, 19, 8.5, 0, 0, Math.PI); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.ellipse(128, 159, 15, 5.5, 0, 0, Math.PI); ctx.fill();
+            // Gallery frame trim
+            ctx.strokeStyle = '#d1a858';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(4, 4, w - 8, h - 8);
         });
         return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.35 });
     }
 
-    // 15. Blue Medical Chart Poster
+    // 15. Detailed Dental & Sterilization Medical Wall Chart (P10, P19, P24, P28, P31, P35)
     const texBlueChart = makeCanvasTex(256, 320, (ctx, w, h) => {
-        ctx.fillStyle = '#0284c7';
+        ctx.fillStyle = '#0369a1';
         ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = '#7dd3fc';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(6, 6, w - 12, h - 12);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(14, 14, w - 28, 34);
+        ctx.beginPath(); ctx.roundRect(16, 14, w - 32, 30, 6); ctx.fill();
+        ctx.fillStyle = '#0369a1';
+        ctx.font = 'bold 13px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CLINICAL STANDARD', w / 2, 34);
         for (let r = 0; r < 3; r++) {
             for (let c = 0; c < 2; c++) {
-                ctx.fillRect(18 + c * 115, 64 + r * 80, 102, 64);
+                const bx = 18 + c * 114, by = 58 + r * 82;
+                ctx.fillStyle = '#f8fafc';
+                ctx.beginPath(); ctx.roundRect(bx, by, 102, 70, 6); ctx.fill();
+                // Micro medical icon + clean diagram lines inside card
+                ctx.fillStyle = (r + c) % 2 === 0 ? '#0ea5e9' : '#14b8a6';
+                ctx.beginPath(); ctx.arc(bx + 24, by + 26, 12, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(bx + 44, by + 18, 48, 6);
+                ctx.fillRect(bx + 44, by + 30, 38, 6);
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(bx + 12, by + 48, 78, 5);
+                ctx.fillRect(bx + 12, by + 57, 62, 5);
             }
+        }
+    });
+
+    // 16. Lead Door Radiation Hazard Warning Sticker (P18)
+    const texXRaySticker = makeCanvasTex(256, 256, (ctx, w, h) => {
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath(); ctx.roundRect(8, 8, w - 16, h - 16, 18); ctx.fill();
+        ctx.strokeStyle = '#18181b';
+        ctx.lineWidth = 10;
+        ctx.stroke();
+        // Radiation Trefoil
+        const cx = 128, cy = 112;
+        ctx.fillStyle = '#18181b';
+        [0, 120, 240].forEach(deg => {
+            const rad = (deg * Math.PI) / 180;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, 62, rad - 0.52, rad + 0.52);
+            ctx.closePath();
+            ctx.fill();
+        });
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#18181b';
+        ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.font = 'bold 34px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('X - RAY', 128, 222);
+    });
+
+    // 17. Translucent Gold-Veined White Onyx Slab (Seamless Wrap for Counter Arc & Wall Panel P02, P06)
+    const texMarbleOnyxGold = makeCanvasTex(512, 256, (ctx, w, h) => {
+        const g = ctx.createLinearGradient(0, 0, w, h);
+        g.addColorStop(0, '#f3ede3');
+        g.addColorStop(0.5, '#fcf8f1');
+        g.addColorStop(1, '#e6d4b7');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(182, 134, 68, 0.36)';
+        ctx.lineWidth = 4.5;
+        for (let i = 0; i < 6; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * 95, 0);
+            ctx.bezierCurveTo(i * 95 + 60, 85, i * 95 - 40, 175, i * 95 + 50, h);
+            ctx.stroke();
+        }
+    }, 0.38, 0.38);
+
+    // 18. Modern Striped Grey-Cream Duvet & Botanical Art Grid (P44, P45, P46)
+    const texStripedDuvet = makeCanvasTex(256, 256, (ctx, w, h) => {
+        ctx.fillStyle = '#dfd8ce';
+        ctx.fillRect(0, 0, w, h);
+        for (let y = 0; y < h; y += 36) {
+            ctx.fillStyle = '#a49b91';
+            ctx.fillRect(0, y, w, 12);
+            ctx.fillStyle = '#f3eee8';
+            ctx.fillRect(0, y + 12, w, 10);
+        }
+    }, 2, 2);
+
+    const texBotanicalMini = makeCanvasTex(192, 256, (ctx, w, h) => {
+        ctx.fillStyle = '#d4b48c';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#f9f6f1';
+        ctx.fillRect(10, 10, w - 20, h - 20);
+        ctx.strokeStyle = '#6f8266';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(w / 2, h - 38); ctx.quadraticCurveTo(w * 0.45, h / 2, w * 0.55, 48); ctx.stroke();
+        ctx.fillStyle = '#7b9470';
+        for (let i = 0; i < 6; i++) {
+            const ly = 65 + i * 24;
+            const side = i % 2 === 0 ? -1 : 1;
+            ctx.beginPath(); ctx.ellipse(w / 2 + side * 22, ly, 20, 9, side * 0.5, 0, Math.PI * 2); ctx.fill();
         }
     });
 
@@ -912,40 +1049,48 @@ function initMaterialsAndTextures() {
         ctx.fillRect(0, h * 0.78, w, h * 0.22);
     });
 
-    // Material Library (Calibrated contrast + bump maps + contact shadow decals)
+    // Exact sRGB -> Linear color converter so PBR hex colors render true to 24-11 Corona/D5 tones under ACES!
+    const cSRGB = (hex) => new THREE.Color(hex).convertSRGBToLinear();
+
+    // Material Library (Exact 24-11 Caramel/Onyx/Sage/Marble Contrast + Reflective Glass & Brass)
     const MAT = {
-        wallWhite: new THREE.MeshStandardMaterial({ color: 0xebe9e3, roughness: 0.88, metalness: 0.02, envMapIntensity: 0.35 }),
-        wallCream: new THREE.MeshStandardMaterial({ color: 0xe4d7c3, roughness: 0.85, metalness: 0.02, envMapIntensity: 0.35 }),
-        wallPeach: new THREE.MeshStandardMaterial({ color: 0xdca87c, roughness: 0.68, metalness: 0.05, envMapIntensity: 0.4 }),
-        wallArchTan: new THREE.MeshStandardMaterial({ color: 0xb98962, roughness: 0.72, metalness: 0.05, envMapIntensity: 0.4 }),
-        skirtingTrim: new THREE.MeshStandardMaterial({ color: 0xd6c7b4, roughness: 0.65, metalness: 0.05, envMapIntensity: 0.35 }),
-        ceilingDown: new THREE.MeshStandardMaterial({ color: 0xf4f2ed, roughness: 0.90, side: THREE.DoubleSide, envMapIntensity: 0.3 }),
-        floorT1: new THREE.MeshStandardMaterial({ map: texFloorT1, bumpMap: texFloorT1, bumpScale: 0.008, roughness: 0.22, metalness: 0.12, envMapIntensity: 0.58 }),
-        floorT2: new THREE.MeshStandardMaterial({ map: texFloorT2, bumpMap: texFloorT2, bumpScale: 0.006, roughness: 0.30, metalness: 0.08, envMapIntensity: 0.48 }),
-        terracotta: new THREE.MeshStandardMaterial({ map: texTerracotta, bumpMap: texTerracotta, bumpScale: 0.015, roughness: 0.78, envMapIntensity: 0.3 }),
-        fishScale: new THREE.MeshStandardMaterial({ map: texFishScale, bumpMap: texFishScale, bumpScale: 0.02, roughness: 0.25, metalness: 0.15, envMapIntensity: 0.6 }),
-        gold: new THREE.MeshStandardMaterial({ color: 0xd1a858, roughness: 0.24, metalness: 0.88, envMapIntensity: 1.15 }),
-        chrome: new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.15, metalness: 0.92, envMapIntensity: 1.25 }),
-        darkWalnut: new THREE.MeshStandardMaterial({ color: 0x3b271a, roughness: 0.62, metalness: 0.06, envMapIntensity: 0.4 }),
-        warmWood: new THREE.MeshStandardMaterial({ color: 0x855834, roughness: 0.65, metalness: 0.05, envMapIntensity: 0.4 }),
-        whiteWood: new THREE.MeshStandardMaterial({ color: 0xe8e5df, roughness: 0.65, metalness: 0.04, envMapIntensity: 0.35 }),
-        flutedCream: new THREE.MeshStandardMaterial({ map: texFluted, bumpMap: texFluted, bumpScale: 0.03, roughness: 0.72, envMapIntensity: 0.35 }),
-        flutedWalnut: new THREE.MeshStandardMaterial({ map: texFlutedWalnut, bumpMap: texFlutedWalnut, bumpScale: 0.03, roughness: 0.65, envMapIntensity: 0.4 }),
-        glassClear: new THREE.MeshStandardMaterial({ color: 0xdceeff, transparent: true, opacity: 0.24, roughness: 0.08, metalness: 0.18, envMapIntensity: 1.4, depthWrite: false }),
-        glassFrostBand: new THREE.MeshStandardMaterial({ map: texGlassFrostBand, transparent: true, opacity: 0.82, roughness: 0.35, metalness: 0.08, side: THREE.DoubleSide, depthWrite: false, envMapIntensity: 0.5 }),
-        glassFrosted: new THREE.MeshStandardMaterial({ color: 0xdce6f0, transparent: true, opacity: 0.68, roughness: 0.48, metalness: 0.06, envMapIntensity: 0.4 }),
-        leatherTan: new THREE.MeshStandardMaterial({ color: 0x9b7250, bumpMap: texGrainBump, bumpScale: 0.008, roughness: 0.40, metalness: 0.06, envMapIntensity: 0.48 }),
-        leatherDark: new THREE.MeshStandardMaterial({ color: 0x5c402c, bumpMap: texGrainBump, bumpScale: 0.008, roughness: 0.45, metalness: 0.05, envMapIntensity: 0.42 }),
-        fabricCream: new THREE.MeshStandardMaterial({ color: 0xe0d6c8, bumpMap: texGrainBump, bumpScale: 0.012, roughness: 0.86, metalness: 0.02, envMapIntensity: 0.3 }),
-        fabricTaupe: new THREE.MeshStandardMaterial({ color: 0xb09e89, bumpMap: texGrainBump, bumpScale: 0.012, roughness: 0.78, envMapIntensity: 0.3 }),
-        fabricPastelMint: new THREE.MeshStandardMaterial({ color: 0x8bc7c0, roughness: 0.80, envMapIntensity: 0.3 }),
-        fabricNavy: new THREE.MeshStandardMaterial({ color: 0x1b3454, roughness: 0.80, envMapIntensity: 0.3 }),
-        dentalWhite: new THREE.MeshStandardMaterial({ color: 0xf4f4f2, roughness: 0.25, metalness: 0.12, envMapIntensity: 0.55 }),
-        marbleWhite: new THREE.MeshStandardMaterial({ color: 0xede8df, roughness: 0.24, metalness: 0.08, envMapIntensity: 0.52 }),
-        marbleBlack: new THREE.MeshStandardMaterial({ color: 0x22262b, roughness: 0.28, metalness: 0.18, envMapIntensity: 0.6 }),
-        marbleBrown: new THREE.MeshStandardMaterial({ color: 0x9e8570, roughness: 0.32, metalness: 0.08, envMapIntensity: 0.4 }),
-        spaLinen: new THREE.MeshStandardMaterial({ color: 0xcbc5bc, bumpMap: texGrainBump, bumpScale: 0.01, roughness: 0.86, envMapIntensity: 0.3 }),
-        stainlessLead: new THREE.MeshStandardMaterial({ color: 0x8c97a4, roughness: 0.32, metalness: 0.75, envMapIntensity: 0.9 }),
+        wallWhite: new THREE.MeshStandardMaterial({ color: cSRGB(0xf3eee7), roughness: 0.86, metalness: 0.02, envMapIntensity: 0.30 }),
+        wallCream: new THREE.MeshStandardMaterial({ color: cSRGB(0xe9d4b6), roughness: 0.82, metalness: 0.02, envMapIntensity: 0.32 }),
+        wallPeach: new THREE.MeshStandardMaterial({ color: cSRGB(0xda9b6c), roughness: 0.60, metalness: 0.05, envMapIntensity: 0.40 }),
+        wallArchTan: new THREE.MeshStandardMaterial({ color: cSRGB(0xb37950), roughness: 0.66, metalness: 0.04, envMapIntensity: 0.38 }),
+        skirtingTrim: new THREE.MeshStandardMaterial({ color: cSRGB(0xd8bc9d), roughness: 0.58, metalness: 0.05, envMapIntensity: 0.35 }),
+        ceilingDown: new THREE.MeshStandardMaterial({ color: cSRGB(0xf6f3ee), roughness: 0.88, side: THREE.DoubleSide, envMapIntensity: 0.28 }),
+        floorT1: new THREE.MeshStandardMaterial({ map: texFloorT1, bumpMap: texFloorT1, bumpScale: 0.008, roughness: 0.14, metalness: 0.14, envMapIntensity: 0.72 }),
+        floorT2: new THREE.MeshStandardMaterial({ map: texFloorT2, bumpMap: texFloorT2, bumpScale: 0.006, roughness: 0.18, metalness: 0.10, envMapIntensity: 0.62 }),
+        terracotta: new THREE.MeshStandardMaterial({ map: texTerracotta, bumpMap: texTerracotta, bumpScale: 0.015, roughness: 0.76, envMapIntensity: 0.3 }),
+        fishScale: new THREE.MeshStandardMaterial({ map: texFishScale, bumpMap: texFishScale, bumpScale: 0.02, roughness: 0.18, metalness: 0.18, envMapIntensity: 0.72 }),
+        gold: new THREE.MeshStandardMaterial({ color: cSRGB(0xd4a64a), roughness: 0.22, metalness: 0.88, envMapIntensity: 1.2 }),
+        champagneGlass: new THREE.MeshStandardMaterial({ color: cSRGB(0xc4955e), roughness: 0.10, metalness: 0.84, envMapIntensity: 1.35 }),
+        chrome: new THREE.MeshStandardMaterial({ color: cSRGB(0xe2e8f0), roughness: 0.14, metalness: 0.92, envMapIntensity: 1.25 }),
+        darkWalnut: new THREE.MeshStandardMaterial({ color: cSRGB(0x3a2417), roughness: 0.56, metalness: 0.06, envMapIntensity: 0.40 }),
+        warmWood: new THREE.MeshStandardMaterial({ color: cSRGB(0x96633c), roughness: 0.58, metalness: 0.05, envMapIntensity: 0.40 }),
+        whiteWood: new THREE.MeshStandardMaterial({ color: cSRGB(0xebe5dc), roughness: 0.62, metalness: 0.04, envMapIntensity: 0.34 }),
+        flutedCream: new THREE.MeshStandardMaterial({ map: texFluted, bumpMap: texFluted, bumpScale: 0.03, roughness: 0.70, envMapIntensity: 0.35 }),
+        flutedWalnut: new THREE.MeshStandardMaterial({ map: texFlutedWalnut, bumpMap: texFlutedWalnut, bumpScale: 0.03, roughness: 0.60, envMapIntensity: 0.42 }),
+        glassClear: new THREE.MeshStandardMaterial({ color: cSRGB(0xdceeff), transparent: true, opacity: 0.24, roughness: 0.08, metalness: 0.18, envMapIntensity: 1.4, depthWrite: false }),
+        glassFrostBand: new THREE.MeshStandardMaterial({ map: texGlassFrostBand, transparent: true, opacity: 0.84, roughness: 0.34, metalness: 0.08, side: THREE.DoubleSide, depthWrite: false, envMapIntensity: 0.5 }),
+        glassFrosted: new THREE.MeshStandardMaterial({ color: cSRGB(0xdce6f0), transparent: true, opacity: 0.68, roughness: 0.48, metalness: 0.06, envMapIntensity: 0.4 }),
+        leatherTan: new THREE.MeshStandardMaterial({ color: cSRGB(0xb5764c), bumpMap: texGrainBump, bumpScale: 0.010, roughness: 0.36, metalness: 0.05, envMapIntensity: 0.50 }),
+        leatherDark: new THREE.MeshStandardMaterial({ color: cSRGB(0x6b442b), bumpMap: texGrainBump, bumpScale: 0.010, roughness: 0.42, metalness: 0.05, envMapIntensity: 0.45 }),
+        fabricCream: new THREE.MeshStandardMaterial({ color: cSRGB(0xebe1d3), bumpMap: texGrainBump, bumpScale: 0.012, roughness: 0.84, metalness: 0.02, envMapIntensity: 0.3 }),
+        fabricTaupe: new THREE.MeshStandardMaterial({ color: cSRGB(0xb38e6d), bumpMap: texGrainBump, bumpScale: 0.012, roughness: 0.76, envMapIntensity: 0.3 }),
+        fabricPastelMint: new THREE.MeshStandardMaterial({ color: cSRGB(0x7fc4bd), roughness: 0.78, envMapIntensity: 0.3 }),
+        fabricNavy: new THREE.MeshStandardMaterial({ color: cSRGB(0x163156), roughness: 0.78, envMapIntensity: 0.3 }),
+        dentalWhite: new THREE.MeshStandardMaterial({ color: cSRGB(0xf4f3ef), roughness: 0.22, metalness: 0.12, envMapIntensity: 0.55 }),
+        marbleWhite: new THREE.MeshStandardMaterial({ color: cSRGB(0xede7dd), roughness: 0.20, metalness: 0.08, envMapIntensity: 0.52 }),
+        marbleOnyxGold: new THREE.MeshStandardMaterial({ map: texMarbleOnyxGold, bumpMap: texMarbleOnyxGold, bumpScale: 0.004, roughness: 0.16, metalness: 0.10, envMapIntensity: 0.68 }),
+        marbleBlack: new THREE.MeshStandardMaterial({ color: cSRGB(0x202429), roughness: 0.26, metalness: 0.20, envMapIntensity: 0.62 }),
+        marbleBrown: new THREE.MeshStandardMaterial({ color: cSRGB(0x9b775b), roughness: 0.28, metalness: 0.10, envMapIntensity: 0.45 }),
+        spaLinen: new THREE.MeshStandardMaterial({ color: cSRGB(0xc9bfb3), bumpMap: texGrainBump, bumpScale: 0.01, roughness: 0.84, envMapIntensity: 0.3 }),
+        stripedDuvet: new THREE.MeshStandardMaterial({ map: texStripedDuvet, bumpMap: texGrainBump, bumpScale: 0.01, roughness: 0.82, envMapIntensity: 0.28 }),
+        botanicalMini: new THREE.MeshStandardMaterial({ map: texBotanicalMini, roughness: 0.4 }),
+        xraySticker: new THREE.MeshStandardMaterial({ map: texXRaySticker, roughness: 0.32 }),
+        stainlessLead: new THREE.MeshStandardMaterial({ color: cSRGB(0x8e9aa6), roughness: 0.28, metalness: 0.78, envMapIntensity: 0.95 }),
         logoWall: new THREE.MeshStandardMaterial({ map: texLogoWall, emissive: 0xfff5e0, emissiveMap: texLogoWall, emissiveIntensity: 0.25, roughness: 0.35, envMapIntensity: 0.4 }),
         skyPanel: new THREE.MeshStandardMaterial({ map: texSky, emissive: 0xdbeafe, emissiveMap: texSky, emissiveIntensity: 0.45, roughness: 0.25, envMapIntensity: 0.3 }),
         worldMapWall: new THREE.MeshStandardMaterial({ map: texWorldMap, emissive: 0xffe4c4, emissiveMap: texWorldMap, emissiveIntensity: 0.14, roughness: 0.45, envMapIntensity: 0.3 }),
@@ -965,8 +1110,8 @@ function initMaterialsAndTextures() {
         uvBlue: new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
         uvPurple: new THREE.MeshBasicMaterial({ color: 0xc084fc }),
         redBeacon: new THREE.MeshBasicMaterial({ color: 0xef4444 }),
-        plantGreen: new THREE.MeshStandardMaterial({ color: 0x36623a, roughness: 0.75, envMapIntensity: 0.3 }),
-        rugGrey: new THREE.MeshStandardMaterial({ color: 0x9aa0a9, roughness: 0.95, envMapIntensity: 0.2 }),
+        plantGreen: new THREE.MeshStandardMaterial({ color: cSRGB(0x2f6835), roughness: 0.72, envMapIntensity: 0.3 }),
+        rugGrey: new THREE.MeshStandardMaterial({ color: cSRGB(0x8e959f), roughness: 0.94, envMapIntensity: 0.2 }),
         makeSignMat,
         makePortraitMat
     };
@@ -1299,19 +1444,30 @@ function addArchitecturalDoor(parent, interactiveDoors, cfg, MAT) {
         addBox(leaf, -w / 2, h - 0.14, -0.025, w / 2, h, 0.025, MAT.darkWalnut);
         addBox(leaf, handleX - 0.06, 0.98, -0.05, handleX + 0.02, 1.02, 0.05, MAT.chrome, false);
     } else if (cfg.style === 'lead-sliding') {
-        // Brushed Steel Lead-Lined X-Ray Door (P18, P19)
+        // Brushed Steel Lead-Lined X-Ray Door with Dual Vision Panes & Trefoil Sticker (P18, P19)
         hitMesh = addBox(leaf, -w / 2, 0.01, -0.03, w / 2, h, 0.03, MAT.stainlessLead);
+        // Perimeter stainless border frame
+        addBox(leaf, -w / 2, 0, -0.036, -w / 2 + 0.04, h, 0.036, MAT.chrome, false);
+        addBox(leaf, w / 2 - 0.04, 0, -0.036, w / 2, h, 0.036, MAT.chrome, false);
         // Top sliding rail
         addBox(frameGroup, -w * 0.6, h + 0.02, -0.05, w * 1.4, h + 0.09, 0.05, MAT.chrome, false);
-        // Lead glass vision window
-        addBox(leaf, -0.15, 1.25, -0.035, 0.15, 1.55, 0.035, MAT.glassClear, false);
-        // Yellow radiation trefoil sticker
-        const trefoilMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-        addBox(leaf, -0.14, 1.62, -0.034, 0.14, 1.88, 0.034, trefoilMat, false);
-        // Gold vertical handle
-        addCyl(leaf, handleX, 0.85, 0.055, 0.016, 0.016, 0.45, MAT.gold, 10, false);
-        // Red Warning Light above frame
-        addCyl(frameGroup, 0, h + 0.42, -0.08, 0.045, 0.045, 0.08, MAT.redBeacon, 12, false);
+        // Upper Warning Sticker (Yellow Trefoil X-RAY) + Lower Lead Vision Viewport (P18)
+        const stickerF = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.24), MAT.xraySticker);
+        stickerF.position.set(0, 1.72, 0.034);
+        leaf.add(stickerF);
+        const stickerB = stickerF.clone();
+        stickerB.rotation.y = Math.PI;
+        stickerB.position.z = -0.034;
+        leaf.add(stickerB);
+        addBox(leaf, -0.13, 1.24, -0.038, 0.13, 1.52, 0.038, MAT.glassClear, false);
+        addBox(leaf, -0.15, 1.22, -0.034, 0.15, 1.54, 0.034, MAT.chrome, false);
+        // Tall vertical gold grab handles both sides
+        [-0.055, 0.055].forEach(hz => {
+            addCyl(leaf, handleX, 0.78, hz, 0.016, 0.016, 0.56, MAT.gold, 10, false);
+        });
+        // Red Warning Beacon Light above frame
+        addBox(frameGroup, -0.05, h + 0.36, -0.09, 0.05, h + 0.41, -0.03, MAT.dentalWhite, false);
+        addCyl(frameGroup, 0, h + 0.41, -0.06, 0.038, 0.045, 0.075, MAT.redBeacon, 14, false);
     }
 
     // Store flat integer doorIdx in userData (prevents circular JSON/clone errors during OBJ/GLTF export)
@@ -1450,13 +1606,19 @@ function buildCurvedReceptionCounter(parent, cx, cy, cz, rotY, MAT) {
     plinth.castShadow = true; plinth.receiveShadow = true;
     g.add(plinth);
 
-    // 2. Main curved marble body (Y: 0.34 .. 1.05)
+    // 2. Main curved marble body (Gold-veined white Onyx stone Y: 0.34 .. 1.05, P02)
     const bodyG = new THREE.ExtrudeGeometry(makeArcShape(rIn, rOut, aStart, aEnd), { depth: 0.72, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, curveSegments: 36 });
     bodyG.rotateX(-Math.PI / 2);
-    const body = new THREE.Mesh(bodyG, MAT.marbleWhite);
+    const body = new THREE.Mesh(bodyG, MAT.marbleOnyxGold);
     body.position.set(0, 0.34, arcCenterZ);
     body.castShadow = true; body.receiveShadow = true;
     g.add(body);
+    // Warm recessed under-kickplate LED strip casting soft amber glow onto marble floor (P02)
+    const kickGlowG = new THREE.ExtrudeGeometry(makeArcShape(rOut - 0.04, rOut - 0.01, aStart, aEnd), { depth: 0.025, bevelEnabled: false, curveSegments: 32 });
+    kickGlowG.rotateX(-Math.PI / 2);
+    const kickGlow = new THREE.Mesh(kickGlowG, MAT.coveWarm);
+    kickGlow.position.set(0, 0.005, arcCenterZ);
+    g.add(kickGlow);
 
     // 3. Curved gold reveal bands
     [0.34, 0.72, 1.05].forEach(ry => {
@@ -1518,12 +1680,16 @@ function buildCurvedReceptionCounter(parent, cx, cy, cz, rotY, MAT) {
         g.add(leafCluster);
     }
     [-0.45, 0.35].forEach(mx => {
-        // Low-profile iMac (Chrome backplate faces lobby guests -Z; macOS desktop UI faces staff +Z, stays under Y=1.42 so Wall Logo is clear!)
+        // Low-profile iMac + wireless white keyboards, mice & reception desk card holder (P02)
         addBox(g, mx - 0.05, 1.07, -0.03, mx + 0.05, 1.085, 0.07, MAT.chrome, false);
         addBox(g, mx - 0.018, 1.085, 0.015, mx + 0.018, 1.19, 0.04, MAT.chrome, false);
         addBox(g, mx - 0.22, 1.14, 0.02, mx + 0.22, 1.41, 0.038, MAT.chrome);
         addBox(g, mx - 0.205, 1.155, 0.038, mx + 0.205, 1.395, 0.042, MAT.screenMacOS, false);
+        addBox(g, mx - 0.14, 1.07, 0.12, mx + 0.08, 1.082, 0.20, MAT.dentalWhite, false); // Keyboard
+        addBox(g, mx + 0.12, 1.07, 0.13, mx + 0.17, 1.084, 0.19, MAT.dentalWhite, false); // Mouse
     });
+    // Desk Brochure/Stand holder on far left wing (-1.28)
+    addBox(g, -1.34, 1.07, 0.16, -1.20, 1.24, 0.22, MAT.gold, false);
 
     buildOfficeSwivelChair(g, -0.45, 0, 0.56, Math.PI, MAT.fabricCream, MAT);
     buildOfficeSwivelChair(g, 0.35, 0, 0.56, Math.PI, MAT.fabricCream, MAT);
@@ -1760,9 +1926,12 @@ function buildSculptedDentalUnit(parent, cx, cy, cz, rotY, MAT) {
     addCyl(g, -0.42, 0.78, 0.25, 0.032, 0.032, 0.26, MAT.dentalWhite, 12);
     const arm1 = addBox(g, -0.42, 1.02, 0.0, 0.18, 1.08, 0.06, MAT.dentalWhite);
     arm1.rotation.y = 0.45;
-    // Tray body
+    // Tray body + Surgical stainless dishes, dental instruments & water tumbler cup (P11, P12, P32)
     addBeveledBox(g, 0.22, 0.96, -0.26, 0.56, 0.06, 0.34, 0.05, MAT.dentalWhite, 0.01);
-    addBeveledBox(g, 0.22, 1.02, -0.26, 0.48, 0.01, 0.28, 0.03, MAT.stainlessLead, 0.002);
+    addBeveledBox(g, 0.22, 1.02, -0.26, 0.48, 0.012, 0.28, 0.03, MAT.stainlessLead, 0.002);
+    addBeveledBox(g, 0.12, 1.032, -0.26, 0.16, 0.018, 0.18, 0.02, MAT.chrome, 0.002);
+    addBeveledBox(g, 0.32, 1.032, -0.26, 0.14, 0.018, 0.16, 0.02, MAT.chrome, 0.002);
+    addCyl(g, -0.58, 0.85, 0.36, 0.032, 0.026, 0.085, MAT.glassClear, 14, false); // Cup dispenser tumbler
     // 4 Tilted Handpieces & Coiled Curved Silicone Tubes!
     for (let t = 0; t < 4; t++) {
         const hx = 0.04 + t * 0.11;
@@ -1916,12 +2085,19 @@ function buildConsultationDeskSet(parent, cx, cy, cz, rotY, MAT) {
     addBox(g, -0.78, 0.02, 0.32, -0.75, 0.72, 0.34, MAT.gold, false);
     addBox(g, 0.75, 0.02, 0.32, 0.78, 0.72, 0.34, MAT.gold, false);
 
-    // Black leather desk pad & iMac (Chrome back toward guests +Z, macOS desktop UI toward doctor -Z) + Contact Shadow
+    // Black leather desk pad, iMac, wireless keyboard, mouse, black folder, pen & mini tooth model (P08)
     addContactShadow(g, 0, 0, 0, 1.95, 1.65, MAT);
     addBox(g, -0.35, 0.77, -0.14, 0.35, 0.78, 0.26, MAT.marbleBlack, false);
     addBox(g, -0.06, 0.78, -0.10, 0.06, 0.86, -0.06, MAT.chrome, false);
     addBeveledBox(g, 0, 0.81, -0.07, 0.54, 0.34, 0.022, 0.015, MAT.chrome, 0.003);
     addBox(g, -0.24, 0.84, -0.088, 0.24, 1.12, -0.082, MAT.screenMacOS, false);
+    // White wireless keyboard & mouse on mat (toward doctor -Z)
+    addBox(g, -0.14, 0.78, -0.22, 0.12, 0.79, -0.14, MAT.dentalWhite, false);
+    addBox(g, 0.16, 0.78, -0.21, 0.21, 0.792, -0.15, MAT.dentalWhite, false);
+    // Notebook + miniature white dental demonstration model on side of desk
+    addBox(g, -0.58, 0.77, -0.18, -0.39, 0.795, 0.06, MAT.marbleBlack, false);
+    addCyl(g, 0.56, 0.77, 0.05, 0.05, 0.055, 0.04, MAT.wallPeach, 14, false);
+    addCyl(g, 0.56, 0.81, 0.05, 0.042, 0.048, 0.045, MAT.dentalWhite, 14, false);
 
     // Swivel doctor chair & 2 curved guest chairs
     buildOfficeSwivelChair(g, 0, 0, -0.58, 0, MAT.fabricCream, MAT);
@@ -2090,9 +2266,13 @@ function buildVanityCabinet(parent, cx, cy, cz, rotY, width, mirrorType, MAT) {
         addBox(g, dx - 0.05, 0.64, 0.285, dx + 0.05, 0.66, 0.295, MAT.gold, false);
         addBox(g, dx - 0.05, 0.42, 0.285, dx + 0.05, 0.44, 0.295, MAT.gold, false);
     }
-    // Sink basin + Chrome gooseneck faucet
+    // Sink basin + Chrome gooseneck faucet + Skincare/Soap Pump Dispensers & Rolled Towels (P16, P32, P36, P38)
     addCyl(g, 0, 0.85, 0, 0.20, 0.18, 0.05, MAT.dentalWhite, 20, false);
     addCyl(g, 0, 0.85, -0.18, 0.015, 0.015, 0.24, MAT.chrome, 10, false);
+    const sx = width * 0.32;
+    addCyl(g, -sx, 0.85, -0.05, 0.032, 0.035, 0.14, MAT.leatherDark, 12, false);
+    addCyl(g, -sx + 0.09, 0.85, -0.02, 0.028, 0.030, 0.11, MAT.gold, 12, false);
+    addBeveledBox(g, sx, 0.86, -0.04, 0.22, 0.05, 0.14, 0.02, MAT.fabricCream, 0.008);
 
     // Mirror: 'tall-oval' (P23, P24, P32) | 'wide-oval' (P36, P38)
     if (mirrorType === 'tall-oval') {
@@ -2134,10 +2314,11 @@ function buildConferenceSet(parent, cx, cy, cz, MAT) {
     addBeveledBox(g, 0, 0.755, 0, 2.35, 0.02, 0.85, 0.16, MAT.dentalWhite, 0.005);
     addBox(g, -0.85, 0, -0.35, -0.65, 0.72, 0.35, MAT.warmWood);
     addBox(g, 0.65, 0, -0.35, 0.85, 0.72, 0.35, MAT.warmWood);
-    // Center cable boxes & flower bowl
+    // Center brass power flip-boxes + Ceramic planter bowl with fern leaves (P14)
     addBox(g, -0.75, 0.77, -0.08, -0.55, 0.785, 0.08, MAT.marbleBlack, false);
     addBox(g, 0.55, 0.77, -0.08, 0.75, 0.785, 0.08, MAT.marbleBlack, false);
-    addCyl(g, 0, 0.77, 0, 0.14, 0.10, 0.14, MAT.plantGreen, 14, false);
+    addCyl(g, 0, 0.77, 0, 0.11, 0.08, 0.09, MAT.darkWalnut, 16, false);
+    buildPottedPlant(g, 0, 0.80, 0, 0.34, MAT);
 
     // 6 High-back white ribbed conference chairs
     [-0.78, 0, 0.78].forEach(kx => {
@@ -2212,15 +2393,19 @@ function buildThanTaiShrine(parent, cx, cy, cz, rotY, MAT) {
     g.rotation.y = rotY;
     // Lower pedestal base (bottom at Y=0)
     addBeveledBox(g, 0, 0.0, 0, 0.56, 0.12, 0.48, 0.03, MAT.whiteWood, 0.008);
-    // Side walls & back
+    // Side walls & caramel back
     addBox(g, -0.26, 0.12, -0.22, -0.21, 0.72, 0.18, MAT.whiteWood);
     addBox(g, 0.21, 0.12, -0.22, 0.26, 0.72, 0.18, MAT.whiteWood);
     addBox(g, -0.26, 0.12, -0.22, 0.26, 0.72, -0.17, MAT.wallPeach);
-    // Roof canopy
-    addBeveledBox(g, 0, 0.74, -0.02, 0.62, 0.08, 0.50, 0.04, MAT.whiteWood, 0.01);
-    // Interior Thần Tài gold figure, red LED, incense burner & cups
-    addCyl(g, 0, 0.14, -0.08, 0.07, 0.09, 0.20, MAT.gold, 12);
-    addCyl(g, 0, 0.34, -0.08, 0.055, 0.055, 0.09, MAT.leatherTan, 12);
+    // Double Roof canopy molding
+    addBeveledBox(g, 0, 0.74, -0.02, 0.62, 0.06, 0.50, 0.04, MAT.whiteWood, 0.01);
+    addBeveledBox(g, 0, 0.80, -0.02, 0.52, 0.04, 0.42, 0.03, MAT.gold, 0.005);
+    // Twin Figures (Thần Tài + Ông Địa), Gold Incense Bowl, 3 Water Cups & Twin Red Altar Bulbs (P02)
+    [-0.10, 0.10].forEach(fx => {
+        addCyl(g, fx, 0.14, -0.09, 0.055, 0.072, 0.16, MAT.gold, 12);
+        addCyl(g, fx, 0.30, -0.09, 0.044, 0.044, 0.07, MAT.leatherTan, 12);
+    });
+    [-0.18, 0.18].forEach(lx => addCyl(g, lx, 0.12, 0.04, 0.024, 0.028, 0.11, MAT.redBeacon, 10, false));
     addCyl(g, 0, 0.12, 0.08, 0.045, 0.035, 0.05, MAT.gold, 10, false); // Incense bowl
     addBox(g, -0.14, 0.64, -0.15, 0.14, 0.68, -0.13, MAT.redBeacon, false);
     parent.add(g);
@@ -2313,7 +2498,7 @@ function buildWaveFeatureWall(parent, cx, yBottom, cz, width, height, rotY, MAT)
     goldWave.position.z = 0.082;
     g.add(goldWave);
 
-    // Warm LED cove glowing curve along bottom edge of wave
+    // Warm LED cove glowing curves along BOTH bottom and upper contours of S-wave (P12!)
     const ledCurve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(-hw, 0.44, 0.025),
         new THREE.Vector3(-hw * 0.3, 1.25, 0.025),
@@ -2321,7 +2506,15 @@ function buildWaveFeatureWall(parent, cx, yBottom, cz, width, height, rotY, MAT)
         new THREE.Vector3(hw * 0.7, 0.80, 0.025),
         new THREE.Vector3(hw, 0.84, 0.025)
     ]);
-    g.add(new THREE.Mesh(new THREE.TubeGeometry(ledCurve, 36, 0.016, 6, false), MAT.coveWarm));
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(ledCurve, 36, 0.018, 6, false), MAT.coveWarm));
+    const upperLedCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-hw, 0.96, 0.025),
+        new THREE.Vector3(-hw * 0.28, 1.88, 0.025),
+        new THREE.Vector3(0.12, 2.06, 0.025),
+        new THREE.Vector3(hw * 0.55, 1.48, 0.025),
+        new THREE.Vector3(hw, 1.46, 0.025)
+    ]);
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(upperLedCurve, 36, 0.016, 6, false), MAT.coveWarm));
 
     // Curved Header Text "HERE COME'S THE BEST DENTISTS" (Full-width unclipped banner faithful to 24-11 render!)
     const txtMat = MAT.makeSignMat("HERE COME'S THE BEST DENTISTS", 'rgba(0,0,0,0)', '#5c4b37');
@@ -2339,18 +2532,27 @@ function buildLitBookcaseCredenza(parent, cx, cy, cz, rotY, width, MAT) {
     g.position.set(cx, cy, cz);
     g.rotation.y = rotY;
 
-    // Lower closed cabinet (Y: 0 .. 0.82)
+    // Lower closed cabinet (Y: 0 .. 0.82) + Geometric Molded Door Trim Lines (P06, P07)
     addBox(g, -width / 2, 0, -0.22, width / 2, 0.82, 0.22, MAT.whiteWood);
     addBox(g, -width / 2 - 0.01, 0.82, -0.23, width / 2 + 0.01, 0.86, 0.23, MAT.marbleWhite);
-    // Back accent board (sage/cream)
+    for (let d = 0; d < 4; d++) {
+        const dx = -width / 2 + (d + 0.5) * (width / 4);
+        addBox(g, dx - 0.02, 0.40, 0.222, dx + 0.02, 0.44, 0.232, MAT.gold, false);
+    }
+    // Back accent board (warm cream)
     addBox(g, -width / 2, 0.86, -0.20, width / 2, 2.72, -0.17, MAT.wallCream);
-    // 4 Open illuminated shelves (Y: 1.25, 1.70, 2.15, 2.60)
-    [1.25, 1.70, 2.15, 2.60].forEach(sy => {
+    // 4 Open illuminated shelves (Y: 1.25, 1.70, 2.15, 2.60) + Ceramic Vases, Gold Plaques & Books (P06, P07)
+    [1.25, 1.70, 2.15, 2.60].forEach((sy, sIdx) => {
         addBeveledBox(g, 0, sy, 0.0, width, 0.04, 0.36, 0.02, MAT.whiteWood, 0.005);
-        addBox(g, -width / 2 + 0.05, sy - 0.01, -0.14, width / 2 - 0.05, sy, -0.10, MAT.coveWarm, false); // LED strip under shelf
+        addBox(g, -width / 2 + 0.05, sy - 0.01, -0.14, width / 2 - 0.05, sy, -0.10, MAT.coveWarm, false);
+        if (sIdx < 3) {
+            const ox = -width * 0.34 + (sIdx * width * 0.28);
+            addCyl(g, ox, sy + 0.04, 0.02, 0.045, 0.065, 0.19, sIdx % 2 === 0 ? MAT.wallArchTan : MAT.gold, 12, false);
+            addBox(g, -ox - 0.12, sy + 0.04, -0.06, -ox + 0.12, sy + 0.25, 0.06, sIdx === 1 ? MAT.fabricCream : MAT.leatherTan, false);
+        }
     });
     // Vertical tan architectural dividers staggered between shelves
-    [-width * 0.25, width * 0.25].forEach((dx, idx) => {
+    [-width * 0.25, width * 0.25].forEach(dx => {
         addBox(g, dx - 0.04, 0.86, -0.14, dx + 0.04, 1.70, 0.14, MAT.wallArchTan);
         addBox(g, -dx - 0.04, 1.70, -0.14, -dx + 0.04, 2.60, 0.14, MAT.wallArchTan);
     });
@@ -2359,36 +2561,49 @@ function buildLitBookcaseCredenza(parent, cx, cy, cz, rotY, width, MAT) {
     return g;
 }
 
-// 20-Cubby Curved-Corner Shoe / Locker Unit (P17)
+// 20-Cubby Curved-Corner Shoe / Locker Unit with Real Hollow Depth & Checkerboard Backing (P17)
 function buildCubbyLockerUnit(parent, cx, cy, cz, rotY, MAT) {
     const g = new THREE.Group();
     g.position.set(cx, cy, cz);
     g.rotation.y = rotY;
-    const w = 2.4, h = 2.45;
+    const w = 2.4;
     addBeveledBox(g, 0, 0, 0, w, 0.65, 0.42, 0.06, MAT.wallPeach, 0.01); // Lower doors
-    addBeveledBox(g, 0, 0.65, 0, w, 1.80, 0.38, 0.06, MAT.wallArchTan, 0.01);
+    // Outer open cabinet casing (back board at +Z, thin sides & top at front -Z..+Z, leaving hollow cubbies!)
+    addBox(g, -w / 2, 0.65, 0.14, w / 2, 2.45, 0.19, MAT.wallCream);
+    addBeveledBox(g, 0, 2.41, 0, w, 0.06, 0.40, 0.04, MAT.wallPeach, 0.008);
     // 5x4 open grid slats
     for (let r = 0; r <= 4; r++) {
-        addBox(g, -w / 2 + 0.04, 0.65 + r * 0.44, -0.19, w / 2 - 0.04, 0.68 + r * 0.44, 0.20, MAT.wallPeach);
+        addBox(g, -w / 2 + 0.04, 0.65 + r * 0.44, -0.19, w / 2 - 0.04, 0.68 + r * 0.44, 0.16, MAT.wallPeach);
     }
     for (let c = 0; c <= 5; c++) {
-        addBox(g, -w / 2 + 0.04 + c * ((w - 0.08) / 5), 0.65, -0.19, -w / 2 + 0.07 + c * ((w - 0.08) / 5), 2.43, 0.20, MAT.wallPeach);
+        addBox(g, -w / 2 + 0.04 + c * ((w - 0.08) / 5), 0.65, -0.19, -w / 2 + 0.07 + c * ((w - 0.08) / 5), 2.43, 0.16, MAT.wallPeach);
+    }
+    // Alternating recessed checkerboard back pockets inside hollow cubbies (P17!)
+    const cw = (w - 0.08) / 5;
+    for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 5; col++) {
+            const bx = -w / 2 + 0.05 + (col + 0.5) * cw;
+            const by = 0.68 + row * 0.44;
+            const mat = (row + col) % 2 === 0 ? MAT.wallArchTan : MAT.wallCream;
+            addBox(g, bx - cw * 0.42, by, 0.08, bx + cw * 0.42, by + 0.40, 0.15, mat, false);
+        }
     }
     parent.add(g);
 }
 
-// Scalloped Layered Vertical Wave Wall in Spa (P38)
+// Scalloped Layered Vertical Organ Wave Wall in Spa (P38 - alternating brown, caramel & cream flutes)
 function buildScallopedSpaWall(parent, cx, yBottom, cz, width, height, rotY, MAT) {
     const g = new THREE.Group();
     g.position.set(cx, yBottom, cz);
     g.rotation.y = rotY;
     addBox(g, -width / 2, 0, -0.06, width / 2, height, 0, MAT.flutedCream);
-    const cols = 11;
+    const cols = 12;
     const cw = width / cols;
+    const mats = [MAT.leatherDark, MAT.wallArchTan, MAT.wallPeach, MAT.wallCream];
     for (let i = 0; i < cols; i++) {
         const px = -width / 2 + (i + 0.5) * cw;
-        const dropLen = 0.65 + ((Math.sin(i * 1.1) + 1) * 0.45);
-        addBeveledBox(g, px, height - dropLen, 0.02, cw * 0.88, dropLen, 0.04, cw * 0.42, i % 2 === 0 ? MAT.wallArchTan : MAT.wallPeach, 0.008);
+        const dropLen = 0.72 + ((Math.sin(i * 1.15) + 1) * 0.52);
+        addBeveledBox(g, px, height - dropLen, 0.02, cw * 0.88, dropLen, 0.04, cw * 0.42, mats[i % mats.length], 0.008);
     }
     parent.add(g);
 }
@@ -2402,7 +2617,7 @@ function buildScallopedSpaWall(parent, cx, yBottom, cz, width, height, rotY, MAT
 function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatingFans, MAT) {
     const H1 = 3.2;
 
-    // 1. Entrance Porch with Terracotta Tile & Curved Top-Left Corner (P01)
+    // 1. Exterior Stepped Terracotta Porch + Curved Entrance Canopy + Planter Boxes (P01)
     const porchShape = roundedRectShape(2.0, 10.6, 0.85);
     const porchG = new THREE.ExtrudeGeometry(porchShape, { depth: 0.16, bevelEnabled: false, curveSegments: 16 });
     porchG.rotateX(-Math.PI / 2);
@@ -2410,6 +2625,16 @@ function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatin
     porch.position.set(-10.5, -0.18, 0);
     porch.receiveShadow = true;
     floor1Group.add(porch);
+    // 2 Wide Stepped Entrance Treads along Front Edge (X = -11.65 .. -11.45) + Flanked Planters (P01)
+    addBox(floor1Group, -11.65, -0.22, -4.6, -11.35, -0.14, 4.6, MAT.marbleWhite, false);
+    addBox(floor1Group, -11.42, -0.18, -4.6, -11.15, -0.09, 4.6, MAT.terracotta, false);
+    [-4.85, -0.35, 4.85].forEach(pz => {
+        addBeveledBox(floor1Group, -10.85, -0.02, pz, 0.45, 0.42, 0.55, 0.04, MAT.marbleWhite, 0.01);
+        buildPottedPlant(floor1Group, -10.85, 0.32, pz, 0.72, MAT);
+    });
+    // Exterior Overhead Entrance Canopy Eyebrow + Warm Soffit Glow
+    addBeveledBox(floor1Group, -10.55, H1 - 0.14, 0, 1.15, 0.14, 10.4, 0.25, MAT.whiteWood, 0.01);
+    addBox(floor1Group, -10.85, H1 - 0.15, -4.8, -10.72, H1 - 0.135, 4.8, MAT.coveWarm, false);
 
     // 2. Main Floor Slab T1 (White marble + red diamond inserts)
     addBox(floor1Group, -10.05, -0.16, -5.35, 10.05, 0.0, 5.35, MAT.floorT1, false);
@@ -2467,15 +2692,20 @@ function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatin
     // =========================================================================
     // ZONE 1: SẢNH TIẾP ĐÓN & QUẦY LỄ TÂN (X: -10.0 to -3.4, P01-P05)
     // =========================================================================
-    // Backlit Onyx Reception Backdrop Wall + Flanking Gold Fluted Strips + 2 Gold Sconces (P02)
+    // Backlit Gold-Veined Onyx Reception Backdrop Wall + Champagne Reflective Tea Mirrors + Brass Sconces (P02)
     addBox(floor1Group, -8.35, 0, 5.02, -4.15, 2.88, 5.14, MAT.logoWall);
+    [-8.78, -3.72].forEach(mx => {
+        addBox(floor1Group, mx - 0.28, 0, 5.05, mx + 0.28, 2.95, 5.14, MAT.champagneGlass); // Reflective tea mirror column
+        addBox(floor1Group, mx - 0.30, 0, 5.03, mx - 0.26, 2.95, 5.15, MAT.gold, false);
+        addBox(floor1Group, mx + 0.26, 0, 5.03, mx + 0.30, 2.95, 5.15, MAT.gold, false);
+    });
     [-8.48, -4.02].forEach(gx => {
         addBox(floor1Group, gx - 0.12, 0, 5.04, gx + 0.12, 2.95, 5.15, MAT.gold);
-        // Vertical glowing light slots + gold minimalist wall sconce with globes (P02)
+        // Vertical glowing light slots + gold minimalist wall sconce with glowing glass globes (P02)
         addBox(floor1Group, gx - 0.02, 0.1, 5.02, gx + 0.02, 2.9, 5.03, MAT.coveWarm, false);
         const sx = gx < -6 ? -8.65 : -3.85;
         addCyl(floor1Group, sx, 1.35, 4.98, 0.012, 0.012, 0.58, MAT.gold, 8, false);
-        addCyl(floor1Group, sx, 1.55, 4.95, 0.045, 0.045, 0.045, MAT.coveWarm, 12, false);
+        addCyl(floor1Group, sx, 1.55, 4.95, 0.048, 0.048, 0.048, MAT.coveWarm, 12, false);
     });
     // Yellow backlit floor mat behind reception desk (P01)
     addBox(floor1Group, -7.2, 0.005, 4.55, -5.2, 0.02, 4.92, MAT.coveWarm, false);
@@ -2519,10 +2749,11 @@ function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatin
 
     // Divider wall at X = 0.0
     addBox(floor1Group, -0.08, 0, 1.85, 0.08, H1, 5.15, MAT.wallWhite);
-    // Fluted Cream Wall + TV + Marble Panel + Smile Portrait on Z = +5.10 wall (P06, P07)
+    // Fluted Cream Wall + Gold-Veined Onyx TV Panel + Gloss Black OLED TV + Webcam (P06, P07)
     addBox(floor1Group, -3.3, 0, 5.06, -0.1, H1, 5.14, MAT.flutedCream);
-    addBeveledBox(floor1Group, -1.7, 0.905, 5.02, 1.85, 1.15, 0.04, 0.04, MAT.marbleWhite, 0.01);
+    addBeveledBox(floor1Group, -1.7, 0.905, 5.02, 1.85, 1.15, 0.04, 0.04, MAT.marbleOnyxGold, 0.01);
     addBox(floor1Group, -2.30, 1.12, 4.98, -1.10, 1.85, 5.01, MAT.tvGlossBlack);
+    addBox(floor1Group, -1.75, 1.85, 4.96, -1.65, 1.89, 5.00, MAT.marbleBlack, false); // TV Conferencing Webcam (P06)
     // Framed portrait of smiling model (P06)
     const p1Mat = MAT.makePortraitMat('#e8dfd6', '#5a4332');
     const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.85, 0.03), p1Mat);
@@ -2592,17 +2823,26 @@ function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatin
 
     // Conference Table + 6 Chairs + Executive Desk + Projector + Dark Wood Slat TV Wall (P14, P15)
     buildConferenceSet(floor1Group, 6.9, 0, -3.05, MAT);
-    // Executive wood desk perpendicular at head of table (X = 8.45)
-    addBeveledBox(floor1Group, 8.45, 0.72, -3.05, 0.65, 0.05, 1.55, 0.05, MAT.darkWalnut, 0.01);
-    addBox(floor1Group, 8.20, 0, -3.72, 8.70, 0.72, -2.38, MAT.darkWalnut);
+    // Executive wood desk perpendicular at head of table (X = 8.45) + Silver Executive Laptop & Pad (P14)
+    addBeveledBox(floor1Group, 8.45, 0.72, -3.05, 0.65, 0.05, 1.55, 0.05, MAT.warmWood, 0.01);
+    addBox(floor1Group, 8.20, 0, -3.72, 8.70, 0.72, -2.38, MAT.warmWood);
+    addBox(floor1Group, 8.32, 0.77, -3.35, 8.64, 0.778, -2.75, MAT.marbleBlack, false);
+    addBox(floor1Group, 8.42, 0.778, -3.20, 8.60, 0.788, -2.90, MAT.chrome, false);
+    const execScreen = addBox(floor1Group, 8.58, 0.788, -3.20, 8.60, 0.98, -2.90, MAT.chrome, false);
+    execScreen.rotation.z = 0.22;
+    addBox(floor1Group, 8.572, 0.80, -3.185, 8.578, 0.96, -2.915, MAT.screenMacOS, false).rotation.z = 0.22;
     buildOfficeSwivelChair(floor1Group, 9.05, 0, -3.05, -Math.PI / 2, MAT.marbleBlack, MAT);
-    // Dark Fluted Walnut Rear Wall (X = 9.82) + Projection Screen + AC (P15)
+    // Dark Fluted Walnut Rear Wall (X = 9.82) + White-Framed Projection Screen + Plants & AC (P15)
     addBox(floor1Group, 9.80, 0, -5.05, 9.86, H1, -1.0, MAT.flutedWalnut);
-    addBox(floor1Group, 9.76, 1.05, -3.85, 9.79, 2.15, -2.25, MAT.tvGlossBlack);
+    addBox(floor1Group, 9.75, 1.02, -3.88, 9.78, 2.18, -2.22, MAT.whiteWood, false);
+    addBox(floor1Group, 9.73, 1.05, -3.85, 9.755, 2.15, -2.25, MAT.tvGlossBlack);
+    buildPottedPlant(floor1Group, 9.52, 0, -4.70, 1.05, MAT);
+    buildPottedPlant(floor1Group, 5.45, 0, -4.75, 0.85, MAT);
     addWallAC(floor1Group, 9.68, 2.65, -3.05, -Math.PI / 2, MAT);
-    // Ceiling Projector hanging at X=6.0, Z=-3.05 (P14, P15)
+    // Ceiling Projector with optical lens & silver body at X=5.85, Z=-3.05 (P14, P15)
     addCyl(floor1Group, 5.85, H1 - 0.55, -3.05, 0.02, 0.02, 0.55, MAT.marbleBlack, 8, false);
-    addBeveledBox(floor1Group, 5.85, H1 - 0.58, -3.05, 0.32, 0.10, 0.28, 0.03, MAT.marbleBlack, 0.005);
+    addBeveledBox(floor1Group, 5.85, H1 - 0.58, -3.05, 0.34, 0.11, 0.28, 0.03, MAT.marbleBlack, 0.005);
+    addCyl(floor1Group, 6.02, H1 - 0.54, -3.05, 0.04, 0.04, 0.04, MAT.chrome, 12, false).rotation.z = Math.PI / 2;
 
     // =========================================================================
     // ZONE 5: HÀNH LANG VÒM CUNG, CẦU THANG, TỦ GIÀY & CT X-QUANG (P16 - P20)
@@ -2644,9 +2884,12 @@ function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatin
         style: 'lead-sliding', mode: 'sliding', name: 'Cửa Bọc Chì X-Quang CT',
         x: 6.70, y: 0, z: 1.05, width: 1.02, height: 2.30, rotY: 0, slideDist: 0.98, sign: 'X - QUANG'
     }, MAT);
-    // Wall TV + Floating Console Shelf outside X-Quang door (X = 8.15, Z = 0.96, P18)
+    // Wall TV + Floating Console Shelf + Keyboard/Mouse + Wall Intercom outside X-Quang door (X = 8.15, Z = 0.96, P18)
     addBox(floor1Group, 7.65, 1.15, 0.93, 8.65, 1.75, 0.97, MAT.tvGlossBlack);
     addBeveledBox(floor1Group, 8.15, 0.82, 0.82, 1.05, 0.14, 0.28, 0.03, MAT.whiteWood, 0.008);
+    addBox(floor1Group, 7.95, 0.96, 0.78, 8.22, 0.975, 0.88, MAT.marbleBlack, false); // Keyboard
+    addBox(floor1Group, 8.28, 0.96, 0.80, 8.34, 0.975, 0.86, MAT.marbleBlack, false); // Mouse
+    addBeveledBox(floor1Group, 7.36, 1.42, 0.95, 0.12, 0.18, 0.03, 0.01, MAT.dentalWhite, 0.003); // Intercom P18
 
     // Phòng CT Cone Beam (X: 5.0 to 9.1, Z: 1.1 to 5.15, P19, P20)
     addBox(floor1Group, 9.0, 0, 1.1, 9.16, H1, 5.15, MAT.wallWhite); // Technical shaft wall
@@ -2654,9 +2897,12 @@ function buildFloor1Scene(floor1Group, ceilingGroupT1, interactiveDoors, rotatin
     addArchWallNiche(floor1Group, 7.05, 0.12, 5.06, 3.65, 2.55, 0.06, Math.PI, MAT.worldMapWall, MAT.coveWarm, MAT);
     // CT Cone Beam Scanner (P20)
     buildCTScanner(floor1Group, 7.05, 0, 4.15, 0, MAT);
-    // Glowing Logo Sign & Curved Console Table inside CT room (X = 8.95, P19, P20)
+    // Glowing Logo Sign & Arched Dual U-Leg Console Table with Floral Vase inside CT room (X = 8.95, P19, P20)
     addBox(floor1Group, 8.94, 1.35, 2.25, 8.98, 2.05, 3.85, MAT.logoWall);
-    addBeveledBox(floor1Group, 8.72, 0.35, 3.05, 0.35, 0.72, 1.15, 0.08, MAT.wallCream, 0.01);
+    addBeveledBox(floor1Group, 8.75, 0.72, 3.05, 0.34, 0.06, 1.12, 0.06, MAT.wallCream, 0.01);
+    [2.68, 2.98, 3.12, 3.42].forEach(lz => addCyl(floor1Group, 8.75, 0.0, lz, 0.06, 0.06, 0.72, MAT.wallCream, 12));
+    addCyl(floor1Group, 8.75, 0.78, 3.05, 0.045, 0.055, 0.16, MAT.glassClear, 12, false); // Mini vase P19
+    buildPottedPlant(floor1Group, 8.75, 0.88, 3.05, 0.32, MAT);
     addBox(floor1Group, 8.96, 1.35, 1.45, 8.98, 1.95, 1.95, MAT.blueChart, false);
 
     // =========================================================================
@@ -2718,7 +2964,9 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
     balcDeck.receiveShadow = true;
     floor2Group.add(balcDeck);
 
-    // Ornate Balcony Guardrail along Left (-11.0) & Top (-6.0)
+    // Ornate Balcony Guardrail + Parapet Curb + Outdoor Planter Boxes (P21)
+    addBox(floor2Group, -11.04, Y2 - 0.02, -6.04, -10.88, Y2 + 0.10, 5.3, MAT.whiteWood, false);
+    addBox(floor2Group, -10.9, Y2 - 0.02, -6.04, 10.0, Y2 + 0.10, -5.88, MAT.whiteWood, false);
     addBox(floor2Group, -11.0, Y2 + 0.92, -5.8, -10.92, Y2 + 0.98, 5.3, MAT.gold, false);
     addBox(floor2Group, -10.8, Y2 + 0.92, -6.0, 10.0, Y2 + 0.98, -5.92, MAT.gold, false);
     for (let rx = -10.5; rx <= 9.8; rx += 0.65) {
@@ -2727,6 +2975,8 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
     for (let rz = -5.5; rz <= 5.0; rz += 0.65) {
         addBox(floor2Group, -11.0, Y2, rz - 0.02, -10.94, Y2 + 0.95, rz + 0.02, MAT.whiteWood, false);
     }
+    [-8.5, -3.5, 2.5].forEach(bx => buildPottedPlant(floor2Group, bx, Y2, -5.60, 0.72, MAT));
+    [-3.0, 2.0].forEach(bz => buildPottedPlant(floor2Group, -10.55, Y2, bz, 0.72, MAT));
 
     // 2. Floor 2 Slab WITH REAL STAIRWELL OPENING (X: 2.25..4.85, Z: 1.0..5.1)
     const slabShape = new THREE.Shape();
@@ -2809,15 +3059,26 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
     // 2 Sculpted Tan Aesthetic Reclining Chairs + Ring Lamps + Acrylic Carts (P35, P36, P37)
     buildAestheticChair(floor2Group, -8.35, Y2, -2.95, 0, MAT);
     buildAestheticChair(floor2Group, -6.55, Y2, -2.95, 0, MAT);
-    // White mobile hydro-facial beauty tower near top window (P36)
+    // White mobile hydro-facial beauty tower with touchscreen + scanning wand near top window (P35, P36)
     addBeveledBox(floor2Group, -7.45, Y2, -4.65, 0.36, 1.04, 0.38, 0.06, MAT.dentalWhite, 0.01);
-    // 4 Recessed Arch Niches along dividing wall X = -5.08 (P35, P37)
+    addBox(floor2Group, -7.60, Y2 + 1.04, -4.60, -7.30, Y2 + 1.24, -4.54, MAT.screenDentalArch, false).rotation.x = -0.35;
+    addBox(floor2Group, -7.72, Y2 + 0.82, -4.65, -7.65, Y2 + 1.15, -4.58, MAT.chrome, false);
+    // 2 Framed Colorful Fashion Portraits + Blue Skincare Chart on Top Window Wall (P35)
+    const fp1 = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.72, 0.025), MAT.makePortraitMat('#bae6fd', '#3b271a'));
+    fp1.position.set(-8.95, Y2 + 1.55, -5.11); floor2Group.add(fp1);
+    const fp2 = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.72, 0.025), MAT.makePortraitMat('#fecaca', '#4a2518'));
+    fp2.position.set(-5.85, Y2 + 1.55, -5.11); floor2Group.add(fp2);
+    addBox(floor2Group, -9.82, Y2 + 1.25, -4.95, -9.80, Y2 + 1.85, -4.45, MAT.blueChart, false);
+    // 4 Recessed Rich Mocha Arch Niches along dividing wall X = -5.08 (P35, P37)
     for (let i = 0; i < 4; i++) {
         addArchWallNiche(floor2Group, -5.10, Y2 + 0.05, -4.45 + i * 0.92, 0.72, 2.35, 0.04, -Math.PI / 2, MAT.wallArchTan, null, MAT);
     }
-    // White Drawer Vanity + Vessel Sink + Curved Peach Side Console + Wide Oval LED Mirror (P36, P37)
+    // White Drawer Vanity + Curved Peach Console Side Table + Red-Rose Bouquet Vase + Tall Corner Plant (P36, P37)
     buildVanityCabinet(floor2Group, -7.8, Y2, -1.24, 0, 1.85, 'wide-oval', MAT);
     addBeveledBox(floor2Group, -6.55, Y2, -1.16, 0.65, 0.80, 0.38, 0.16, MAT.wallPeach, 0.01);
+    addCyl(floor2Group, -6.55, Y2 + 0.80, -1.16, 0.075, 0.095, 0.22, MAT.marbleWhite, 14, false);
+    buildPottedPlant(floor2Group, -6.55, Y2 + 0.96, -1.16, 0.52, MAT);
+    buildPottedPlant(floor2Group, -9.35, Y2, -1.25, 0.95, MAT);
     // 3 White Casement Windows (2 on X=-10.0, 1 on Z=-5.15, P35, P36) + AC
     addWhiteCasementWindow(floor2Group, -9.85, Y2 + 0.85, -3.95, 1.45, 1.25, Math.PI / 2, 2, MAT);
     addWhiteCasementWindow(floor2Group, -9.85, Y2 + 0.85, -1.95, 1.25, 1.25, Math.PI / 2, 2, MAT);
@@ -2839,9 +3100,11 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
     floor2Group.add(lotusPanel);
     // Right Wall: Vertical Scalloped Wavy Fluted Relief Wall (X = -0.10, P38)
     buildScallopedSpaWall(floor2Group, -0.10, Y2, -3.0, 4.05, H2 - 0.1, -Math.PI / 2, MAT);
-    // Vanity + Curved Peach Side Console + Wide Oval Mirror on Z = -1.24 (P38, P39)
+    // Vanity + Curved Peach Side Console with Floral Bouquet + Wide Oval Mirror on Z = -1.24 (P38, P39)
     buildVanityCabinet(floor2Group, -2.55, Y2, -1.24, 0, 1.75, 'wide-oval', MAT);
     addBeveledBox(floor2Group, -1.35, Y2, -1.16, 0.65, 0.80, 0.38, 0.16, MAT.wallPeach, 0.01);
+    addCyl(floor2Group, -1.35, Y2 + 0.80, -1.16, 0.075, 0.095, 0.20, MAT.marbleWhite, 14, false);
+    buildPottedPlant(floor2Group, -1.35, Y2 + 0.95, -1.16, 0.45, MAT);
     // Exterior Window + Glass Balcony Door + AC (Z = -5.15, P38, P40)
     addWhiteCasementWindow(floor2Group, -2.2, Y2 + 0.85, -5.14, 1.75, 1.25, 0, 2, MAT);
     addArchitecturalDoor(floor2Group, interactiveDoors, {
@@ -2855,7 +3118,7 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
         style: 'white-multipane', mode: 'swing', name: 'Cửa Phòng Studio / Lounge',
         x: 0.7, y: Y2, z: -0.85, width: 0.96, height: 2.25, rotY: 0, hingeSide: -1, openAngle: Math.PI * 0.45, sign: 'STUDIO'
     }, MAT);
-    // Floating Makeup Counter + 3 Circular Backlit Mirrors + 3 Plush Stools along X = 0.12 (P42)
+    // Floating Makeup Counter + 3 Circular Backlit Mirrors + Brushes/Perfume Jars + 3 Plush Stools along X = 0.12 (P42)
     addBeveledBox(floor2Group, 0.38, Y2 + 0.74, -3.0, 0.48, 0.12, 2.75, 0.04, MAT.whiteWood, 0.01);
     [-3.85, -3.0, -2.15].forEach(mz => {
         const ringM = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.30, 0.02, 24), MAT.chrome);
@@ -2866,20 +3129,28 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
         haloM.rotation.y = Math.PI / 2;
         haloM.position.set(0.13, Y2 + 1.48, mz);
         floor2Group.add(haloM);
-        // Plush round ottoman stool
+        // Plush round cream ottoman stool + makeup brush jar on counter
         addCyl(floor2Group, 0.72, Y2, mz, 0.22, 0.21, 0.46, MAT.fabricCream, 20);
+        addCyl(floor2Group, 0.44, Y2 + 0.86, mz + 0.18, 0.035, 0.032, 0.09, MAT.gold, 10, false);
+        addBox(floor2Group, 0.36, Y2 + 0.86, mz - 0.15, 0.48, Y2 + 0.89, mz + 0.02, MAT.wallPeach, false);
     });
-    // Long Sofa + 2 Armchairs + Hex Coffee Table (P42, P43)
+    // Long Sofa + 2 Armchairs + Hex Coffee Table + 2 Potted Corner Plants (P42, P43)
     buildSofa(floor2Group, 4.05, Y2, -3.0, -Math.PI / 2, 2.25, MAT.fabricNavy, MAT);
     buildBarrelArmchair(floor2Group, 2.65, Y2, -4.45, 0, MAT.fabricCream, MAT);
     buildBarrelArmchair(floor2Group, 2.65, Y2, -1.55, Math.PI, MAT.fabricCream, MAT);
     buildHexCoffeeTableSet(floor2Group, 2.65, Y2, -3.0, MAT);
-    // Right Wall: Fluted Cream Paneling + Glowing Ring Sign + 2 Brass Floor Lamps (X = 4.88, P43)
+    buildPottedPlant(floor2Group, 0.55, Y2, -4.65, 1.05, MAT);
+    buildPottedPlant(floor2Group, 4.45, Y2, -4.65, 0.90, MAT);
+    // Right Wall: Fluted Cream Paneling + Glowing Ring Sign with Centered Slogan Text + 2 Brass Floor Lamps (X = 4.88, P43)
     addBox(floor2Group, 4.86, Y2, -5.0, 4.92, Y2 + H2, -1.0, MAT.flutedCream);
     const haloRing = new THREE.Mesh(new THREE.TorusGeometry(0.68, 0.022, 8, 36), MAT.coveWarm);
     haloRing.rotation.y = Math.PI / 2;
     haloRing.position.set(4.84, Y2 + 1.68, -3.0);
     floor2Group.add(haloRing);
+    const ringTxt = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.20), MAT.makeSignMat("HERE COME'S THE BEST DENTISTS", 'rgba(0,0,0,0)', '#8c6b43'));
+    ringTxt.rotation.y = -Math.PI / 2;
+    ringTxt.position.set(4.82, Y2 + 1.68, -3.0);
+    floor2Group.add(ringTxt);
     [-4.35, -1.65].forEach(lz => {
         addCyl(floor2Group, 4.55, Y2, lz, 0.14, 0.14, 0.03, MAT.gold, 14);
         addCyl(floor2Group, 4.55, Y2 + 0.03, lz, 0.018, 0.018, 1.42, MAT.gold, 8);
@@ -2899,20 +3170,37 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
     }, MAT);
     // Entry alcove wall (X = 6.25, Z: -5.15..-2.3, P21)
     addBox(floor2Group, 6.20, Y2, -5.15, 6.32, Y2 + H2, -2.35, MAT.wallWhite);
-    // Double Bed with Under-Bed Warm LED Glow (X = 8.15, Z = -3.95, P44)
+    // Double Bed with Striped Modern Duvet & Under-Bed Warm LED Glow (X = 8.15, Z = -3.95, P44, P45)
     addBox(floor2Group, 7.25, Y2 + 0.01, -4.90, 9.05, Y2 + 0.05, -2.95, MAT.coveWarm, false);
     addBeveledBox(floor2Group, 8.15, Y2 + 0.05, -3.95, 1.85, 0.36, 2.02, 0.06, MAT.spaLinen, 0.015);
-    addBeveledBox(floor2Group, 8.15, Y2 + 0.40, -3.85, 1.72, 0.16, 1.88, 0.05, MAT.fabricCream, 0.02);
+    addBeveledBox(floor2Group, 8.15, Y2 + 0.40, -3.85, 1.72, 0.16, 1.88, 0.05, MAT.stripedDuvet, 0.02);
     addBeveledBox(floor2Group, 7.72, Y2 + 0.56, -4.55, 0.65, 0.12, 0.38, 0.05, MAT.fabricCream, 0.015);
     addBeveledBox(floor2Group, 8.58, Y2 + 0.56, -4.55, 0.65, 0.12, 0.38, 0.05, MAT.fabricCream, 0.015);
-    // Desk + Chair beside bed (X = 6.75, P44)
+    // Desk + Chair + Flower Vase beside bed (X = 6.75, P44, P46)
     addBeveledBox(floor2Group, 6.75, Y2 + 0.72, -4.65, 0.85, 0.04, 0.52, 0.03, MAT.whiteWood, 0.008);
     addBox(floor2Group, 6.35, Y2, -4.88, 6.40, Y2 + 0.72, -4.42, MAT.gold, false);
     addBox(floor2Group, 7.10, Y2, -4.88, 7.15, Y2 + 0.72, -4.42, MAT.gold, false);
+    addCyl(floor2Group, 6.95, Y2 + 0.74, -4.70, 0.04, 0.05, 0.14, MAT.glassClear, 10, false);
+    buildPottedPlant(floor2Group, 6.95, Y2 + 0.84, -4.70, 0.28, MAT);
     buildCafeGoldChair(floor2Group, 6.75, Y2, -4.15, Math.PI, MAT.fabricTaupe, MAT);
-    // 4-Door Wardrobe with 9 Lower Drawers (Z = -1.25, P45, P46)
+    // 4-Door Wardrobe with Upper Wood Cubbies & 9 Lower Drawers (Z = -1.25, P45, P46)
     addBox(floor2Group, 7.2, Y2, -1.55, 9.75, Y2 + 2.65, -0.95, MAT.whiteWood);
     addBox(floor2Group, 7.2, Y2, -1.56, 9.75, Y2 + 0.78, -1.54, MAT.wallCream);
+    addBox(floor2Group, 7.2, Y2 + 2.25, -1.56, 9.75, Y2 + 2.65, -1.54, MAT.wallPeach);
+    for (let c = 0; c < 3; c++) {
+        for (let r = 0; r < 3; r++) {
+            const dx = 7.62 + c * 0.85, dy = Y2 + 0.14 + r * 0.22;
+            addBox(floor2Group, dx - 0.04, dy, -1.57, dx + 0.04, dy + 0.025, -1.555, MAT.gold, false);
+        }
+    }
+    // 6 Botanical Framed Artworks (3x2 grid) on Cream Wall opposite Bed (X = 6.34, P46)
+    for (let col = 0; col < 3; col++) {
+        for (let row = 0; row < 2; row++) {
+            const art = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.36, 0.28), MAT.botanicalMini);
+            art.position.set(6.34, Y2 + 1.55 + row * 0.44, -4.35 + col * 0.42);
+            floor2Group.add(art);
+        }
+    }
     // 2 Triple White Casement Windows (P44, P45) + 6 Botanical Frames (P46) + AC
     addWhiteCasementWindow(floor2Group, 8.15, Y2 + 0.85, -5.14, 1.95, 1.25, 0, 3, MAT);
     addWhiteCasementWindow(floor2Group, 9.84, Y2 + 0.85, -3.15, 2.05, 1.25, -Math.PI / 2, 3, MAT);
@@ -2981,31 +3269,46 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
         x: 0.48, y: Y2, z: 0.85, width: 0.92, height: 2.30, rotY: 0, hingeSide: 1, openAngle: -Math.PI * 0.45, sign: 'XỬ LÝ'
     }, MAT);
 
+    // Center Overhead Plaque "XỬ LÝ DỤNG CỤ" spanning between glass doors (P27)
+    const xldcG = new THREE.Group();
+    xldcG.position.set(0.0, Y2 + 2.72, 0.85);
+    addBox(xldcG, -0.58, -0.10, -0.016, 0.58, 0.10, 0.016, MAT.gold, false);
+    const xldcF = new THREE.Mesh(new THREE.PlaneGeometry(1.14, 0.19), MAT.makeSignMat('XỬ LÝ DỤNG CỤ'));
+    xldcF.position.z = 0.019; xldcG.add(xldcF);
+    const xldcB = xldcF.clone(); xldcB.rotation.y = Math.PI; xldcB.position.z = -0.019; xldcG.add(xldcB);
+    floor2Group.add(xldcG);
+
     // Center dividing glass partition between Vô Trùng & Xử Lý (X = 0.0, P27, P28)
     addStraightGlassWall(floor2Group, 0.0, Y2, 0.9, 0.0, Y2 + H2, 5.1, MAT, false);
     addBox(floor2Group, 2.02, Y2, 0.85, 2.18, Y2 + H2, 5.15, MAT.wallWhite); // Wall into stairs
-    // Left Bay (Vô Trùng): L-Counter + Upper Cabinets + Peach Glass Backsplash + Double Sink (P28)
+    // Left Bay (Vô Trùng): L-Counter + Upper Cabinets + Peach Glass Backsplash + Medical Chart + Double Sink (P28)
     addBox(floor2Group, -2.05, Y2, 4.45, -0.1, Y2 + 0.86, 5.12, MAT.whiteWood);
     addBox(floor2Group, -2.05, Y2, 2.25, -1.42, Y2 + 0.86, 4.45, MAT.whiteWood);
     addBox(floor2Group, -2.06, Y2 + 0.86, 4.42, -0.08, Y2 + 0.91, 5.13, MAT.marbleWhite);
     addBox(floor2Group, -2.06, Y2 + 0.86, 2.22, -1.40, Y2 + 0.91, 4.42, MAT.marbleWhite);
-    // Peach glass backsplash & upper cabinets
+    // Peach glass backsplash, under-cabinet LED & medical chart (P28)
     addBox(floor2Group, -2.04, Y2 + 0.91, 5.05, -0.1, Y2 + 1.62, 5.10, MAT.wallPeach);
+    addBox(floor2Group, -2.04, Y2 + 0.91, 4.42, -1.41, Y2 + 1.62, 4.46, MAT.wallPeach);
+    addBox(floor2Group, -1.35, Y2 + 2.05, 5.03, -0.85, Y2 + 2.55, 5.05, MAT.blueChart, false);
     addBox(floor2Group, -2.04, Y2 + 1.62, 4.65, -0.1, Y2 + 2.75, 5.12, MAT.whiteWood);
     addBox(floor2Group, -1.35, Y2 + 0.88, 4.55, -0.55, Y2 + 0.92, 4.95, MAT.marbleBlack, false); // Double black sink
     addCyl(floor2Group, -0.95, Y2 + 0.92, 5.0, 0.016, 0.016, 0.30, MAT.chrome, 10, false);
 
-    // Right Bay (Xử Lý): Counter + Black 2-Door UV Cabinet Glowing Blue + White Autoclave (P27, P29)
+    // Right Bay (Xử Lý): Counter + Peach Backsplash + Black 2-Door UV Cabinet with Glowing Mesh Racks + Autoclave (P27, P29)
     addBox(floor2Group, 0.1, Y2, 4.45, 2.0, Y2 + 0.86, 5.12, MAT.whiteWood);
     addBox(floor2Group, 1.38, Y2, 2.25, 2.0, Y2 + 0.86, 4.45, MAT.whiteWood);
     addBox(floor2Group, 0.08, Y2 + 0.86, 4.42, 2.02, Y2 + 0.91, 5.13, MAT.marbleWhite);
     addBox(floor2Group, 1.36, Y2 + 0.86, 2.22, 2.02, Y2 + 0.91, 4.42, MAT.marbleWhite);
+    addBox(floor2Group, 0.1, Y2 + 0.91, 5.05, 2.0, Y2 + 1.62, 5.10, MAT.wallPeach);
     addBox(floor2Group, 0.1, Y2 + 1.62, 4.65, 2.0, Y2 + 2.75, 5.12, MAT.whiteWood);
-    // Tall Black 2-Door UV Cabinet glowing blue inside (P27, P29)
+    addBox(floor2Group, 0.75, Y2 + 2.05, 5.03, 1.25, Y2 + 2.55, 5.05, MAT.blueChart, false);
+    // Tall Black 2-Door UV Cabinet with internal cobalt wire racks (P29)
     addBox(floor2Group, 1.40, Y2, 1.35, 1.98, Y2 + 1.95, 2.15, MAT.marbleBlack);
     addBox(floor2Group, 1.38, Y2 + 0.25, 1.42, 1.42, Y2 + 1.85, 2.08, MAT.uvBlue, false);
-    // White Tabletop Autoclave Class-B (P29)
+    [0.58, 0.98, 1.38].forEach(ry => addBox(floor2Group, 1.375, Y2 + ry, 1.41, 1.425, Y2 + ry + 0.025, 2.09, MAT.chrome, false));
+    // White Tabletop Autoclave Class-B + Digital Panel (P29)
     addBeveledBox(floor2Group, 1.68, Y2 + 0.91, 2.75, 0.48, 0.44, 0.56, 0.04, MAT.dentalWhite, 0.01);
+    addBox(floor2Group, 1.435, Y2 + 1.22, 2.55, 1.44, Y2 + 1.30, 2.66, MAT.uvBlue, false);
 
     // 4. PHÒNG KHỬ KHUẨN & PHẪU THUẬT IMPLANT (X: 4.85 to 10.0, Z: 0.85 to 5.15, P22-P26)
     // Scrub Vestibule "PHÒNG KHỬ KHUẨN" (X: 4.85..5.95, P22, P23)
@@ -3028,29 +3331,37 @@ function buildFloor2Scene(floor2Group, ceilingGroupT2, interactiveDoors, rotatin
     }, MAT);
     addStraightGlassWall(floor2Group, 5.95, Y2, 0.85, 9.85, Y2 + H2, 0.85, MAT, true);
 
-    // Implant Feature Glass Wall + Vertical Glowing LED Bars + TV (Z = 5.05, P24, P25)
+    // Implant Feature Glass Wall + Vertical Glowing LED Bars + TV + Two-Line Gold Slogan (Z = 5.05, P24, P25)
     addBox(floor2Group, 6.2, Y2, 5.06, 9.8, Y2 + H2, 5.14, MAT.wallCream);
     [6.6, 6.85, 8.95, 9.2].forEach(lx => addBox(floor2Group, lx - 0.02, Y2 + 0.05, 5.02, lx + 0.02, Y2 + 2.9, 5.04, MAT.coveWarm, false));
     addBeveledBox(floor2Group, 7.9, Y2 + 1.09, 4.98, 1.38, 0.78, 0.03, 0.02, MAT.marbleBlack, 0.004);
     addBox(floor2Group, 7.25, Y2 + 1.13, 4.95, 8.55, Y2 + 1.83, 4.97, MAT.tvGlossBlack, false);
-    const impSignMat = MAT.makeSignMat('IMPLANT - CÔNG NGHỆ HÀNG ĐẦU', 'rgba(0,0,0,0)', '#334155');
-    const impSign = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 0.40), impSignMat);
-    impSign.position.set(7.9, Y2 + 2.12, 5.0);
+    const impTop = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.28), MAT.makeSignMat('IMPLANT', 'rgba(0,0,0,0)', '#9e7c56'));
+    impTop.position.set(7.9, Y2 + 2.38, 5.0); impTop.rotation.y = Math.PI; floor2Group.add(impTop);
+    const impSignMat = MAT.makeSignMat('GIẢI PHÁP CÔNG NGHỆ HÀNG ĐẦU', 'rgba(0,0,0,0)', '#9e7c56');
+    const impSign = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 0.34), impSignMat);
+    impSign.position.set(7.9, Y2 + 2.08, 5.0);
     impSign.rotation.y = Math.PI;
     floor2Group.add(impSign);
 
-    // Sculpted Surgical Dental Chair + Stainless Cart + Vanity + Red-Cross Cabinet (P24, P25, P26)
+    // Sculpted Surgical Dental Chair + Stainless Cart + Mobile Tool Drawer + Dual Red-Cross Cabinet (P24, P25, P26)
     buildSculptedDentalUnit(floor2Group, 7.95, Y2, 2.95, -Math.PI / 2, MAT);
     // Stainless rolling surgical tray cart
     addCyl(floor2Group, 6.95, Y2, 2.65, 0.02, 0.02, 0.82, MAT.chrome, 8, false);
     addBeveledBox(floor2Group, 6.95, Y2 + 0.82, 2.65, 0.65, 0.04, 0.44, 0.03, MAT.stainlessLead, 0.005);
-    // Vanity + Oval Mirror on X = 9.75 or Z = 5.0? Look at P24: vanity is on RIGHT wall (X = 6.2 or Z = 0.85? Actually X=6.2 left or Z=1.2 along glass)! Look at P24: along the dividing wall (Z=+1.15) is white vanity + oval mirror!
+    // 6-Drawer Mobile Supply Cabinet + Blue Chart near Window (P24)
+    addBox(floor2Group, 6.25, Y2, 4.35, 6.70, Y2 + 0.85, 4.95, MAT.whiteWood);
+    for (let d = 0; d < 4; d++) addBox(floor2Group, 6.70, Y2 + 0.14 + d * 0.18, 4.55, 6.72, Y2 + 0.16 + d * 0.18, 4.75, MAT.gold, false);
+    addBox(floor2Group, 6.18, Y2 + 1.25, 4.65, 6.22, Y2 + 1.85, 4.95, MAT.blueChart, false);
     buildVanityCabinet(floor2Group, 9.55, Y2, 2.15, -Math.PI / 2, 1.55, 'tall-oval', MAT);
     addWhiteCasementWindow(floor2Group, 9.84, Y2 + 0.85, 3.85, 1.65, 1.25, -Math.PI / 2, 2, MAT);
     addWallAC(floor2Group, 9.75, Y2 + 2.55, 3.85, -Math.PI / 2, MAT);
-    // First-aid medical cabinet with Red Crosses (P26)
+    // First-aid medical cabinet with Dual Red Crosses (P26)
     addBeveledBox(floor2Group, 9.76, Y2 + 1.35, 1.15, 0.14, 0.48, 0.56, 0.02, MAT.dentalWhite, 0.005);
-    addBox(floor2Group, 9.67, Y2 + 1.54, 1.12, 9.68, Y2 + 1.66, 1.18, MAT.redBeacon, false);
+    [-0.12, 0.12].forEach(czOff => {
+        addBox(floor2Group, 9.67, Y2 + 1.51, 1.15 + czOff - 0.015, 9.68, Y2 + 1.65, 1.15 + czOff + 0.015, MAT.redBeacon, false);
+        addBox(floor2Group, 9.67, Y2 + 1.565, 1.15 + czOff - 0.07, 9.68, Y2 + 1.595, 1.15 + czOff + 0.07, MAT.redBeacon, false);
+    });
 
     // Utility Wash Alcove right of Stair Landing (X: 8.3..9.85, Z: -0.85..+0.85, P21)
     addStraightGlassWall(floor2Group, 8.2, Y2, -0.85, 8.2, Y2 + H2, 0.85, MAT, true);
